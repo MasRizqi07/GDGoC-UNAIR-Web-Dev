@@ -2,58 +2,168 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Deep Dive Into Interactive UI — JS Core & DOM</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f5f5f0" />
+  <meta name="description" content="A hands-on playground for learning JavaScript, DOM events, state, and browser APIs." />
+  <link rel="icon" href="data:," />
+  <title>Deep Dive — JavaScript & DOM Playground</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="site-header">
-    <h1>Deep Dive Into Interactive UI</h1>
-    <p class="tag">JS Core & DOM — interactive examples and playground</p>
-    <div class="controls">
-      <button id="theme-toggle">Toggle Theme</button>
-      <button id="open-modal">Open Modal</button>
+    <a class="brand" href="./" aria-label="DEEPDIVE home">
+      <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+      <span>DEEP<span class="brand-light">DIVE</span></span>
+    </a>
+    <div class="header-actions">
+      <span class="shortcut-hint"><kbd>G</kbd> highlight header</span>
+      <button class="button button-quiet" id="theme-toggle" type="button" aria-pressed="false">
+        <span class="button-icon" aria-hidden="true">◐</span>
+        <span class="theme-label">Dark mode</span>
+      </button>
+      <button class="button button-primary" id="open-modal" type="button">
+        <span aria-hidden="true">＋</span> Quick note
+      </button>
     </div>
   </header>
 
-  <nav class="tabs" role="tablist">
-    <button role="tab" aria-selected="true" data-target="widgets">Widgets</button>
-    <button role="tab" data-target="todo">Todo</button>
-    <button role="tab" data-target="inspector">DOM Inspector</button>
-  </nav>
-
-  <main>
-    <section id="widgets" class="panel" aria-hidden="false">
-      <h2>Interactive Widgets</h2>
-      <div class="widget-grid">
-        <demo-tabs class="widget"></demo-tabs>
-        <drag-list class="widget"></drag-list>
-        <div class="widget">
-          <h3>Keyboard Demo</h3>
-          <p>Press <strong>G</strong> to highlight the header.</p>
+  <main class="page-shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span> FIELD NOTES / 01 — BROWSER FUNDAMENTALS</p>
+        <h1 id="page-title">Make the browser<br /><span>do something.</span></h1>
+        <p class="hero-description">A small, hands-on lab for the moments when JavaScript meets the DOM. Explore a pattern, change the state, and see what actually happens.</p>
+        <div class="hero-meta">
+          <span><span class="meta-icon" aria-hidden="true">◷</span> 4 interactive labs</span>
+          <span><span class="meta-divider" aria-hidden="true"></span> No framework required</span>
         </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="orbit-core"><span>&lt;DOM /&gt;</span></div>
+        <span class="orbit-tag tag-events">EVENTS</span>
+        <span class="orbit-tag tag-state">STATE</span>
+        <span class="orbit-tag tag-browser">BROWSER APIs</span>
+        <span class="orbit-cross cross-one">✳</span>
+        <span class="orbit-cross cross-two">＋</span>
       </div>
     </section>
 
-    <section id="todo" class="panel" aria-hidden="true">
-      <h2>Todo (DOM + state)</h2>
-      <todo-app></todo-app>
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">CHOOSE YOUR WORKBENCH</p>
+        <h2>Pick a place to start<span class="heading-period">.</span></h2>
+      </div>
+      <p class="section-aside"><span class="live-dot"></span> Everything runs right here</p>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Interactive learning sections">
+      <button id="tab-widgets" class="tab-button is-active" role="tab" aria-selected="true" aria-controls="widgets" data-target="widgets" type="button">
+        <span class="tab-index">01</span> Widgets <span class="tab-arrow" aria-hidden="true">↗</span>
+      </button>
+      <button id="tab-todo" class="tab-button" role="tab" aria-selected="false" aria-controls="todo" data-target="todo" tabindex="-1" type="button">
+        <span class="tab-index">02</span> Todo & state <span class="tab-arrow" aria-hidden="true">↗</span>
+      </button>
+      <button id="tab-inspector" class="tab-button" role="tab" aria-selected="false" aria-controls="inspector" data-target="inspector" tabindex="-1" type="button">
+        <span class="tab-index">03</span> DOM inspector <span class="tab-arrow" aria-hidden="true">↗</span>
+      </button>
+    </nav>
+
+    <section id="widgets" class="panel" role="tabpanel" aria-labelledby="tab-widgets" aria-hidden="false" tabindex="0">
+      <div class="panel-intro">
+        <div>
+          <p class="eyebrow">LAB 01 — EVENTS & ELEMENTS</p>
+          <h2>Small interactions, real browser APIs.</h2>
+        </div>
+        <p>Click around, move things, and watch the DOM respond.</p>
+      </div>
+      <div class="widget-grid">
+        <article class="widget-card widget-tabs">
+          <div class="card-topline"><span class="card-number">A / 01</span><span class="card-topic">CUSTOM ELEMENT</span></div>
+          <demo-tabs></demo-tabs>
+        </article>
+        <article class="widget-card">
+          <div class="card-topline"><span class="card-number">A / 02</span><span class="card-topic">DRAG EVENTS</span></div>
+          <drag-list></drag-list>
+        </article>
+        <article class="widget-card keyboard-card">
+          <div class="card-topline"><span class="card-number">A / 03</span><span class="card-topic">KEYBOARD</span></div>
+          <div class="keyboard-content">
+            <span class="key-orbit" aria-hidden="true"><kbd>G</kbd></span>
+            <div>
+              <h3>One key. One detail.</h3>
+              <p>Press <kbd class="inline-key">G</kbd> anywhere outside a text field to briefly mark the page header.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+      <a class="resource-link" href="tutorials/widgets.html">Explore the widget walkthrough <span aria-hidden="true">↗</span></a>
     </section>
 
-    <section id="inspector" class="panel" aria-hidden="true">
-      <h2>DOM Inspector</h2>
-      <dom-inspector></dom-inspector>
+    <section id="todo" class="panel" role="tabpanel" aria-labelledby="tab-todo" aria-hidden="true" tabindex="0" hidden>
+      <div class="panel-intro">
+        <div>
+          <p class="eyebrow">LAB 02 — STATE & STORAGE</p>
+          <h2>A tiny list with a longer memory.</h2>
+        </div>
+        <p>Your tasks stay in this browser using localStorage. Nothing is sent anywhere.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="widget-card todo-card">
+          <div class="card-topline"><span class="card-number">B / 01</span><span class="card-topic">PERSISTENT STATE</span></div>
+          <todo-app></todo-app>
+        </article>
+        <aside class="note-card">
+          <span class="note-mark" aria-hidden="true">↳</span>
+          <p class="eyebrow">UNDER THE HOOD</p>
+          <h3>State survives a refresh.</h3>
+          <p>The component reads a saved array when it connects, then writes each change back to the browser’s local storage.</p>
+          <a class="resource-link" href="tutorials/todo.html">Open the todo walkthrough <span aria-hidden="true">↗</span></a>
+        </aside>
+      </div>
     </section>
+
+    <section id="inspector" class="panel" role="tabpanel" aria-labelledby="tab-inspector" aria-hidden="true" tabindex="0" hidden>
+      <div class="panel-intro">
+        <div>
+          <p class="eyebrow">LAB 03 — INSPECT & INTERCEPT</p>
+          <h2>Look closer at the page.</h2>
+        </div>
+        <p>Start inspecting, then select any page element to read its live details.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="widget-card inspector-card">
+          <div class="card-topline"><span class="card-number">C / 01</span><span class="card-topic">CAPTURE PHASE</span></div>
+          <dom-inspector></dom-inspector>
+        </article>
+        <aside class="note-card note-card-amber">
+          <span class="note-mark" aria-hidden="true">◎</span>
+          <p class="eyebrow">TRY THIS</p>
+          <h3>Follow the event path.</h3>
+          <p>Inspect a button, a heading, or one of the tab labels. The inspector listens during capture and keeps the selected click from activating the page.</p>
+          <a class="resource-link" href="tutorials/inspector.html">Open the inspector walkthrough <span aria-hidden="true">↗</span></a>
+        </aside>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <a class="brand footer-brand" href="./" aria-label="DEEPDIVE home"><span class="brand-mark" aria-hidden="true">&lt;/&gt;</span><span>DEEP<span class="brand-light">DIVE</span></span></a>
+      <p>Made for curious clicks and better questions.</p>
+      <span class="footer-code">VANILLA JS · DOM · 2026</span>
+    </footer>
   </main>
 
-  <div id="modal" class="modal" hidden>
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description" tabindex="-1" hidden>
     <div class="modal-panel">
-      <button id="close-modal" class="close">✕</button>
-      <h3>Small Modal</h3>
-      <p>This demonstrates focus management and DOM insertion.</p>
+      <button id="close-modal" class="icon-button close" type="button" aria-label="Close quick note" data-close-modal>×</button>
+      <p class="eyebrow">A NOTE TO SELF</p>
+      <h2 id="modal-title">Curiosity is a<br /><span>good starting point.</span></h2>
+      <p id="modal-description">Try a control, inspect an element, or add a task. The best way to learn the DOM is to give it something to do.</p>
+      <button class="button button-primary modal-done" type="button" data-close-modal>Back to the lab <span aria-hidden="true">↗</span></button>
     </div>
   </div>
 
-  <script type="module" src="script.js" defer></script>
+  <script src="script.js" defer></script>
 </body>
 </html>

@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "live-server --port=5500 --open=Deep%20Dive%20Interactive%20UI/index.html",
-    "test": "echo \"No tests configured yet. Run 'npm run start' to try the demo.\" && exit 0"
+    "start": "live-server --port=5500 --open=index.html",
+    "test": "node --check script.js"
   },
   "devDependencies": {
     "live-server": "^1.2.2"
