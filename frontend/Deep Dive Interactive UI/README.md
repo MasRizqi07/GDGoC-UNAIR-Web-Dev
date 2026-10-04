@@ -22,6 +22,9 @@ The demo opens at `http://127.0.0.1:5500/`. You can also open `index.html` direc
 
 The walkthroughs in [`tutorials/`](./tutorials) are linked from the matching labs.
 
+For the implementation record, QA evidence, deployment notes, open risks, and
+recommended handoff actions, see the [project handoff report](./PROJECT_HANDOFF.md).
+
 ## Accessibility and motion
 
 - Use `Tab` to move between controls and `ArrowLeft` / `ArrowRight` to move between tabs.
