@@ -1,4 +1,15 @@
-const { test, expect } = require('@playwright/test');
+const { test: base, expect } = require('@playwright/test');
+
+const test = base.extend({
+  browserErrors: async ({ page }, use) => {
+    const errors = [];
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text());
+    });
+    page.on('pageerror', (error) => errors.push(error.message));
+    await use(errors);
+  },
+});
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -14,6 +25,12 @@ test('main and nested tabs keep selection, panel visibility, and keyboard naviga
   await expect(page.getByRole('tab', { name: /DOM inspector/ })).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#inspector')).toBeVisible();
   await expect(todoPanel).toBeHidden();
+  await expect(page.locator('#todo')).toHaveAttribute('aria-hidden', 'true');
+  await expect(page.locator('#inspector')).toHaveAttribute('aria-hidden', 'false');
+
+  await page.keyboard.press('ArrowLeft');
+  await expect(todoTab).toHaveAttribute('aria-selected', 'true');
+  await expect(todoPanel).toBeVisible();
 
   const widgetTab = page.locator('demo-tabs [role="tab"][data-id="b"]');
   await widgetTab.focus();
@@ -86,8 +103,9 @@ test('drag list reorders items without duplicating or losing them', async ({ pag
   const items = page.locator('drag-list li');
 
   await expect(items).toHaveText(['⠿ Item 1', '⠿ Item 2', '⠿ Item 3']);
-  await items.nth(0).dragTo(items.nth(2).locator('.grip'), {
-    targetPosition: { x: 8, y: 8 },
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('drag-list').evaluate((element) => element.scrollIntoView({ block: 'center' }));
+  await items.nth(0).dragTo(items.nth(2), {
     steps: 8,
   });
   await expect(items).toHaveText(['⠿ Item 2', '⠿ Item 3', '⠿ Item 1']);
@@ -113,8 +131,18 @@ test('inspector observes a page click without activating it and can be stopped',
 });
 
 test('G highlights the header outside text entry and is ignored in Shadow DOM inputs', async ({ page }) => {
+  await page.locator('.site-header').evaluate((header) => {
+    window.__highlightWasAdded = false;
+    const observer = new MutationObserver(() => {
+      if (header.classList.contains('highlight')) {
+        observer.disconnect();
+        window.__highlightWasAdded = true;
+      }
+    });
+    observer.observe(header, { attributes: true, attributeFilter: ['class'] });
+  });
   await page.keyboard.press('g');
-  await expect(page.locator('.site-header')).toHaveClass(/highlight/);
+  await expect.poll(() => page.evaluate(() => window.__highlightWasAdded)).toBe(true);
   await expect(page.locator('.site-header')).not.toHaveClass(/highlight/, { timeout: 2_000 });
 
   await page.getByRole('tab', { name: /Todo & state/ }).click();
@@ -144,4 +172,17 @@ test('tutorial pages are served by the local preview server', async ({ request }
     const response = await request.get(route);
     expect(response.ok(), `${route} should return a successful response`).toBeTruthy();
   }
+});
+
+test('main page interactions produce no browser errors', async ({ page, browserErrors }) => {
+  await page.getByRole('tab', { name: /Todo & state/ }).click();
+  const input = page.locator('todo-app').getByRole('textbox', { name: 'New task' });
+  await input.fill('Check browser errors');
+  await input.press('Enter');
+  await page.getByRole('tab', { name: /DOM inspector/ }).click();
+  const inspector = page.locator('dom-inspector');
+  await inspector.getByRole('button', { name: /Start inspecting/ }).click();
+  await inspector.getByRole('button', { name: /Stop inspecting/ }).click();
+
+  expect(browserErrors).toEqual([]);
 });
