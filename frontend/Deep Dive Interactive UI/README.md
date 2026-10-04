@@ -7,11 +7,12 @@ A hands-on browser lab for learning how JavaScript interacts with the DOM. It us
 From this directory:
 
 ```sh
-npm install
+npm ci
+npx playwright install chromium
 npm start
 ```
 
-The demo opens at `http://127.0.0.1:5500/`. You can also open `index.html` directly in a browser.
+The browser install is needed once per machine for end-to-end tests. The demo opens at `http://127.0.0.1:5500/`. You can also open `index.html` directly in a browser.
 
 ## Labs
 
@@ -38,4 +39,4 @@ recommended handoff actions, see the [project handoff report](./PROJECT_HANDOFF.
 npm test
 ```
 
-This runs `node --check script.js` as a JavaScript syntax check. It is not a unit-test suite. Verify behavior in a browser by exercising the tabs, theme persistence, modal close/Escape/focus, todo persistence/removal, drag ordering, inspector start/stop, keyboard shortcut, and reduced-motion mode.
+This checks `script.js` syntax and runs the Playwright end-to-end suite in Chromium. Playwright starts the local preview server automatically for tests; use `npm start` separately for manual testing. The suite covers tabs, theme persistence, modal focus and dismissal, todo storage, drag ordering, inspector behavior, keyboard shortcut, reduced motion, narrow viewport layout, and tutorial routes.

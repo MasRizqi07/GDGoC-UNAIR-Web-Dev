@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "start": "live-server --port=5500 --open=index.html",
-    "test": "node --check script.js"
+    "test": "node --check script.js && playwright test",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "live-server": "^1.2.2"
   }
 }

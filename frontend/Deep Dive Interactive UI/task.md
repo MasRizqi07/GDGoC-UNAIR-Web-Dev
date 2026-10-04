@@ -55,13 +55,13 @@ Upgrade the existing vanilla-JavaScript playground into a polished, responsive, 
 
 - Browser APIs: Custom Elements, Shadow DOM, DOM events, `localStorage`, and HTML drag-and-drop.
 - Page contract: IDs, roles, classes, and `data-*` attributes in [index.html](./index.html).
-- Existing package contract: [package.json](./package.json) declares `live-server`; the existing `npm test` script is only a placeholder until replaced or supplemented with meaningful checks.
+- Package contract: [package.json](./package.json) declares `live-server` and `@playwright/test`; `npm test` runs the JavaScript syntax check and Chromium E2E suite.
 - The vanilla-JS learning purpose and existing user-facing features take precedence over introducing a new framework or unrelated capabilities.
 
 ## Validation Plan
 
 1. Run `node --check script.js` from this directory.
-2. Run `npm test` from this directory and distinguish actual tests from placeholder output.
+2. Run `npm test` from this directory; it runs the syntax check and browser regression suite (install Chromium once with `npx playwright install chromium`).
 3. Run the local demo with `npm start` when browser interaction validation is needed.
 4. At 320px and desktop width, inspect the main page for usability and horizontal overflow.
 5. Smoke-test tabs, theme persistence, modal open/close/Escape/focus, todo persistence/removal, drag reordering, inspector start/stop, and `G`.
@@ -80,3 +80,4 @@ Upgrade the existing vanilla-JavaScript playground into a polished, responsive, 
 - A fresh browser page and the interaction run reported zero console errors.
 - Lighthouse audits reported 100 for accessibility, best practices, SEO, and agentic browsing on desktop (light and dark themes) and mobile. The initial audit caught two contrast/text-name issues; muted and accent text tokens were darkened for contrast, and the visible brand text was included in its accessible name before all audits passed.
 - Dependency restore (`npm install`, using the already-declared `live-server`) reported 10 npm audit findings (6 moderate, 4 high). No automatic audit fixes were applied; dependency-security remediation remains out of scope.
+- Regression automation: `npm ci` completed from the lockfile and `npm test` passed (9 Playwright E2E tests, 2 workers) on Chromium; `git diff --check` was rerun after documentation edits.

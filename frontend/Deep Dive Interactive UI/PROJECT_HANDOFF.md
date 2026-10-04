@@ -1,7 +1,7 @@
 # Project Handoff — Deep Dive JavaScript & DOM Playground
 
 **Tanggal laporan:** 4 Oktober 2026  
-**Status pekerjaan:** Implementasi refresh UI selesai; bukti verifikasi awal tersedia  
+**Status pekerjaan:** Refresh UI dan regression E2E suite selesai; bukti verifikasi tersedia
 **Audiens:** QA Engineer, DevOps Engineer, Project Manager, dan engineer penerus  
 **Cakupan:** `frontend/Deep Dive Interactive UI` saja
 
@@ -15,13 +15,14 @@ Pekerjaan terbaru memperbarui presentasi menjadi antarmuka responsif bergaya edi
 
 Hasil yang telah diverifikasi:
 
-- `npm test` berhasil, tetapi hanya menjalankan `node --check script.js`; ini **bukan** unit test.
+- `npm test` berhasil: pemeriksaan sintaks `script.js` dan 9 Playwright E2E tests lulus di Chromium.
 - `git diff --check` tidak menemukan whitespace error.
 - Smoke test browser mencakup alur utama tab, tema, modal, todo, drag-and-drop, inspector, dan shortcut.
 - Tidak ditemukan error console pada pemeriksaan halaman utama.
 - Tidak ada horizontal overflow pada viewport 320 px maupun desktop yang diuji.
 - Audit Lighthouse desktop dan mobile memperoleh skor 100 pada Accessibility, Best Practices, SEO, dan Agentic Browsing setelah temuan kontras/nama aksesibel awal diperbaiki.
 - Pemulihan dependency development melaporkan 10 temuan audit npm (6 moderate, 4 high). Temuan belum ditriase satu per satu dan tidak ada auto-fix yang dijalankan.
+- Instalasi bersih juga menampilkan peringatan deprecated pada sejumlah dependency transitif; lakukan triase bersama hasil audit, bukan upgrade otomatis tanpa pengujian.
 
 ## 2. Konsep produk dan sasaran pengguna
 
@@ -55,6 +56,7 @@ Memberi pengguna cara praktis untuk memahami hubungan antara event, elemen DOM, 
 - Perlindungan shortcut `G` agar tidak mengganggu input, termasuk input di Shadow DOM.
 - Koreksi skrip `npm start` dan penggantian placeholder `npm test` menjadi pemeriksaan sintaks.
 - Lockfile untuk dependency development yang sudah dideklarasikan serta pengecualian `node_modules` lokal.
+- Playwright E2E runner, konfigurasi server preview, dan regression tests untuk alur browser utama.
 - Dokumentasi pelaksanaan dan handoff.
 
 ### Tidak termasuk / belum disepakati
@@ -128,9 +130,11 @@ index.html
 | `package.json` | Skrip development dan validasi |
 | `package-lock.json` | Dependency lockfile untuk instalasi reproducible |
 | `.gitignore` | Mengecualikan `node_modules/` dan `npm-debug.log*` pada proyek |
+| `playwright.config.js` | Konfigurasi Chromium, preview server otomatis, dan worker limit |
+| `e2e/playground.spec.js` | Automated regression tests untuk alur website utama |
 | `README.md` | Petunjuk penggunaan dan batas validasi singkat |
 | `task.md` | Batas scope, acceptance criteria, dan bukti penyelesaian |
-| `__tests__/placeholder.test.js` | Placeholder test lama; tidak dijalankan oleh `npm test` saat ini |
+| `__tests__/placeholder.test.js` | Legacy placeholder; bukan bagian dari Playwright E2E suite |
 
 ## 7. Handoff QA
 
@@ -138,7 +142,7 @@ index.html
 
 | Area | Pemeriksaan | Hasil |
 |---|---|---|
-| Syntax | `npm test` → `node --check script.js` | Lulus |
+| Syntax dan E2E | `npm test` → syntax check + Playwright Chromium | 9 passed |
 | Patch hygiene | `git diff --check` | Lulus |
 | Main tabs | Klik, selected/hidden/ARIA sync, arrow navigation | Smoke test lulus |
 | Nested tabs | Konten berganti tanpa menyembunyikan kontrol tab | Smoke test lulus |
@@ -156,18 +160,17 @@ index.html
 
 ### Pekerjaan QA yang disarankan berikutnya
 
-1. Tambahkan automated functional/E2E suite; `__tests__/placeholder.test.js` masih placeholder dan `npm test` tidak mengeksekusinya.
-2. Ulangi skenario utama di browser yang menjadi target tim (misalnya Chrome, Firefox, Safari/Edge sesuai dukungan yang disepakati).
+1. Tambahkan edge-case automation untuk storage tidak tersedia/penuh, data todo rusak, origin baru, dan sinkronisasi lintas tab.
+2. Ulangi skenario utama di browser target (misalnya Firefox dan Edge; tetapkan dukungan Safari sesuai target platform).
 3. Lakukan pemeriksaan keyboard dan screen reader manual pada tabs, modal, form todo, drag-and-drop, dan inspector.
-4. Uji storage yang dinonaktifkan/penuh, data todo rusak, halaman dibuka melalui origin baru, serta perilaku lintas tab.
-5. Verifikasi tutorial live-edit secara terpisah; halaman tersebut menggunakan `innerHTML` untuk memasang markup yang diketik ke preview.
-6. Simpan hasil regression run dengan versi browser, OS, viewport, dan tanggal agar dapat direproduksi.
+4. Verifikasi tutorial live-edit secara terpisah; halaman tersebut menggunakan `innerHTML` untuk memasang markup yang diketik ke preview.
+5. Simpan hasil regression run dengan versi browser, OS, viewport, dan tanggal agar dapat direproduksi.
 
 ### Batas interpretasi hasil
 
 - Lighthouse adalah pemeriksaan otomatis berbasis browser; skor 100 bukan sertifikasi aksesibilitas dan tidak menggantikan pengujian assistive technology/manual.
-- Browser smoke test sebelumnya dijalankan manual/terarah di browser terintegrasi, bukan sebagai test suite yang dapat dijalankan ulang otomatis dari repository.
-- `node --check` membuktikan sintaks `script.js` valid, bukan kebenaran semua alur runtime.
+- Playwright suite otomatis saat ini menargetkan Chromium desktop; hasilnya tidak membuktikan konsistensi lintas-browser atau aksesibilitas formal.
+- `node --check` membuktikan sintaks `script.js` valid, sementara E2E suite memberi coverage terhadap alur terpilih, bukan seluruh kombinasi state/error.
 
 ## 8. Handoff DevOps dan deployment
 
@@ -177,11 +180,12 @@ Dari folder `frontend/Deep Dive Interactive UI`:
 
 ```sh
 npm ci
+npx playwright install chromium
 npm start
 npm test
 ```
 
-`npm start` menjalankan `live-server` pada `http://127.0.0.1:5500/`. Alternatifnya, buka `index.html` langsung di browser; beberapa fitur storage mungkin bergantung pada perilaku browser terhadap origin/file URL.
+Instalasi Chromium dibutuhkan sekali per mesin test. `npm test` memulai `live-server` otomatis melalui Playwright; `npm start` disediakan untuk preview/manual testing pada `http://127.0.0.1:5500/`. Alternatifnya, buka `index.html` langsung di browser; beberapa fitur storage mungkin bergantung pada perilaku browser terhadap origin/file URL.
 
 ### Status operasional saat handoff
 
@@ -218,13 +222,13 @@ Tutorial live-edit sengaja mengubah teks editor menjadi preview markup melalui `
 | Refresh UI/responsif | Selesai | Tema, layout, hierarki visual, reduced motion |
 | Interaksi dan aksesibilitas awal | Selesai | Tab, modal, todo, drag list, inspector, shortcut |
 | Validasi dan dokumentasi handoff | Selesai | Smoke test dan hasil Lighthouse dicatat |
-| Automated browser/unit test suite | Belum selesai | Rekomendasi fase engineering lanjutan |
+| Automated browser regression suite | Selesai untuk alur inti | 9 Playwright tests lulus di Chromium; edge cases dan browser lain tetap perlu ditambah |
 | Dependency audit remediation | Belum selesai | Butuh triase dan keputusan pemilik dependency |
 | Hosting dan pipeline release | Belum ditetapkan | Tidak termasuk deliverable saat ini |
 
 ### Urutan kerja lanjutan yang direkomendasikan
 
-1. **QA:** tetapkan browser/platform target dan buat automated regression tests untuk acceptance criteria pada `task.md`.
+1. **QA:** tetapkan browser/platform target dan perluas suite dengan edge cases serta cross-browser runs.
 2. **DevOps/security owner:** triase temuan npm audit, tentukan versi runtime/tooling, dan sepakati hosting serta security headers.
 3. **Product/project manager:** putuskan apakah tutorial live-edit tetap hanya demo lokal atau akan tersedia untuk input publik; setujui kriteria rilis dan prioritas aksesibilitas.
 4. **Engineering:** selesaikan temuan yang disetujui, jalankan test pada URL preview/staging, dan minta QA sign-off.
@@ -246,4 +250,3 @@ Tutorial live-edit sengaja mengubah teks editor menjadi preview markup melalui `
 - [index.html](./index.html), [styles.css](./styles.css), [script.js](./script.js) — sumber implementasi.
 - [package.json](./package.json) dan [package-lock.json](./package-lock.json) — skrip serta dependency development.
 - [tutorials/](./tutorials/) — walkthrough pengguna.
-
