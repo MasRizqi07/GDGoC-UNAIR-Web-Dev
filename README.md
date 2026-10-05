@@ -9,3 +9,4 @@
 - **Vulnerabilities:** 10 untriaged npm audit findings (dev-only via `live-server` in original structure).
 - **Security:** `innerHTML` used in tutorial live-edit poses a local XSS risk.
 - **CI/CD:** No Continuous Integration (CI) pipeline setup yet.
+
