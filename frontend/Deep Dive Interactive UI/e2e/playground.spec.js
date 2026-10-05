@@ -148,8 +148,23 @@ test('G highlights the header outside text entry and is ignored in Shadow DOM in
   await page.getByRole('tab', { name: /Todo & state/ }).click();
   const input = page.locator('todo-app').getByRole('textbox', { name: 'New task' });
   await input.focus();
+
+  // Set up observer BEFORE pressing 'g' to catch any transient highlight
+  await page.locator('.site-header').evaluate((header) => {
+    window.__highlightWhileTyping = false;
+    const obs = new MutationObserver(() => {
+      if (header.classList.contains('highlight')) {
+        window.__highlightWhileTyping = true;
+      }
+    });
+    obs.observe(header, { attributes: true, attributeFilter: ['class'] });
+  });
+
   await page.keyboard.press('g');
-  await expect(page.locator('.site-header')).not.toHaveClass(/highlight/);
+  // Wait longer than the 900ms highlight duration to be sure
+  await page.waitForTimeout(1200);
+  const fired = await page.evaluate(() => window.__highlightWhileTyping);
+  expect(fired, 'G shortcut should NOT highlight header while typing in Shadow DOM input').toBe(false);
 });
 
 test('layout fits a narrow viewport and honors reduced motion', async ({ page }) => {
