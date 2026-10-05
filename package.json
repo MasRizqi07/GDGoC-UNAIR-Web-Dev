@@ -1,0 +1,23 @@
+{
+  "name": "gdgoc-unair-web-dev",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "playwright test",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "cross-env": "^7.0.3",
+    "rimraf": "^5.0.5"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@gdgoc/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "live-server --port=5500 --open=index.html --no-browser",
+    "start": "live-server --port=5500 --open=index.html --no-browser",
+    "test": "node --check script.js",
+    "build": "echo \"No build step for vanilla JS yet\""
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

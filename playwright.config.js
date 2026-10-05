@@ -1,7 +1,7 @@
 const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
-  testDir: './e2e',
+  testDir: './apps/web/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
@@ -15,7 +15,7 @@ module.exports = defineConfig({
     ...devices['Desktop Chrome'],
   },
   webServer: {
-    command: 'npm start -- --no-browser',
+    command: 'npm run dev --workspace=apps/web',
     url: 'http://127.0.0.1:5500/',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
