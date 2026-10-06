@@ -63,3 +63,4 @@ test('keyboard navigation reaches playground tabs and tutorials', async ({ page 
   await page.keyboard.press('Tab');
   await expect(page.locator(':focus')).toHaveClass(/skip-link/);
 });
+

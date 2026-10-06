@@ -46,3 +46,4 @@ for (const { name, path } of pages) {
     });
   });
 }
+
