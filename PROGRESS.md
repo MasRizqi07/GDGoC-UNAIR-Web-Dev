@@ -195,3 +195,22 @@ This backend is a stub moving to `examples/`, so it does not affect the product.
 - Add root `.gitignore`
 - Delete empty `__tests__/` directory
 
+
+
+---
+
+## STEP 0 - Audit and close Phase 2
+
+**Status:** VERIFIED
+
+### Updates
+- **Lockfiles:** Restored `package-lock.json` for `study-jam-1-express` and `study-jam-4-react` as they are isolated examples outside the main npm workspace.
+- **Port Hygiene:** Tested `playwright.config.js` with `reuseExistingServer: false`. This ensures Playwright spins up a fresh `live-server` for tests, avoiding stale state false positives. Reverted config back to `!process.env.CI` for local dev speed after confirming it works.
+- **Root Tests:** `npm test` now runs `node --check apps/web/script.js` before executing `playwright test`. Validated by clearing `node_modules` and doing a fresh `npm ci`.
+- **Examples Inventory:**
+  - `study-jam-1-express`: Express, `server.js`, 3000
+  - `study-jam-2-go-fiber`: Go Fiber, `cmd/main.go`, 3000
+  - `study-jam-4-react`: Vite + React, `index.html` -> `src/main.jsx`, 5173
+  - All examples are confirmed to be stubs/course materials and isolated from the main workspace.
+- **Security & Secrets:** Verified that `live-server` is the sole source of the 10 vulnerabilities (all Dev-Only). Confirmed `innerHTML` XSS risk in tutorials. No real secrets found in working tree or git history.
+- **Mutation Check:** The `G` shortcut guard in `apps/web/script.js` was manually mutated (removed `!typing` check), which successfully broke the tests (RED). Reverting it restored the tests (GREEN), confirming test reliability.

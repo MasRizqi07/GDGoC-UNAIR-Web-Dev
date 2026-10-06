@@ -17,7 +17,7 @@ module.exports = defineConfig({
   webServer: {
     command: 'npm run dev --workspace=apps/web',
     url: 'http://127.0.0.1:5500/',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 30_000,
   },
 });
