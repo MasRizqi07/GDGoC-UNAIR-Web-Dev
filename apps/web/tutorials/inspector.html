@@ -1,17 +1,33 @@
 <!doctype html>
 <html lang="en">
-  <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Inspector Tutorial — Deep Dive UI</title>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Inspector Tutorial - Deep Dive UI</title>
   <link rel="stylesheet" href="../styles.css">
-  <script type="module" src="../script.js"></script>
+  <script type="module" src="../script.js" defer></script>
 </head>
 <body>
-  <main style="max-width:900px;margin:2rem auto;padding:1rem">
-    <h1>DOM Inspector — Guided Tutorial</h1>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="site-header">
+    <a class="brand" href="../index.html" aria-label="DEEPDIVE home">
+      <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+      <span>DEEP<span class="brand-light">DIVE</span></span>
+    </a>
+    <div class="header-controls">
+      <button class="button button-quiet" id="theme-toggle" type="button" aria-pressed="false">
+        <span class="button-icon" aria-hidden="true">?</span>
+        <span class="theme-label">Dark mode</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main-content" class="page-shell" style="max-width:900px;margin:2rem auto;padding:1rem">
+    <h1>DOM Inspector - Guided Tutorial</h1>
     <p>The <code>&lt;dom-inspector&gt;</code> demonstrates event capturing vs bubbling and safe element highlighting.</p>
 
-    <h3>Annotated snippet</h3>
+    <h2>Annotated snippet</h2>
     <pre><code>// handler runs in capturing mode on document (true argument)
 document.addEventListener('click', handler, true);
 function handler(e){
@@ -21,23 +37,29 @@ function handler(e){
 }
 </code></pre>
 
-    <h4>Walkthrough</h4>
+    <h3>Walkthrough</h3>
     <ol>
-      <li><strong>Capture phase</strong> — registering with <code>true</code> ensures the inspector sees the event before other listeners, useful for debugging and safe highlighting.</li>
-      <li><strong>Prevent/stop</strong> — call <code>e.preventDefault()</code> and <code>e.stopPropagation()</code> so inspecting doesn't trigger application behaviors.</li>
-      <li><strong>Highlight</strong> — add a transient CSS class to the selected element for visual feedback and remove it after a short timeout.</li>
+      <li><strong>Capture phase</strong> - registering with <code>true</code> ensures the inspector sees the event before other listeners, useful for debugging and safe highlighting.</li>
+      <li><strong>Prevent/stop</strong> - call <code>e.preventDefault()</code> and <code>e.stopPropagation()</code> so inspecting doesn't trigger application behaviors.</li>
+      <li><strong>Highlight</strong> - add a transient CSS class to the selected element for visual feedback and remove it after a short timeout.</li>
     </ol>
 
-    <h3>Live-edit: test inspector usage</h3>
+    <h2>Live-edit: test inspector usage</h2>
     <p>Edit the markup below to add elements to inspect; press <strong>Run</strong>.</p>
     <label for="insp-editor">Markup to insert</label>
     <textarea id="insp-editor" title="inspector editor" placeholder="&lt;button&gt;A button&lt;/button&gt;" style="width:100%;height:90px">&lt;button&gt;A button&lt;/button&gt; &lt;div&gt;Some text&lt;/div&gt;</textarea>
-    <div style="margin:.5rem 0"><button id="insp-run">Run</button></div>
+    <div style="margin:.5rem 0"><button id="insp-run" class="button button-primary">Run</button></div>
     <div id="insp-preview" style="border:1px solid rgba(0,0,0,0.06);padding:1rem;border-radius:6px"></div>
 
     <dom-inspector></dom-inspector>
-    <p><a href="../index.html">Back to demo</a></p>
+    <p style="margin-top: 2rem"><a href="../index.html" class="resource-link">Back to demo <span aria-hidden="true">?</span></a></p>
   </main>
+
+  <footer class="page-footer">
+    <a class="brand footer-brand" href="../index.html" aria-label="DEEPDIVE home"><span class="brand-mark" aria-hidden="true">&lt;/&gt;</span><span>DEEP<span class="brand-light">DIVE</span></span></a>
+    <p>Made for curious clicks and better questions.</p>
+    <span class="footer-code">VANILLA JS  DOM  2026</span>
+  </footer>
 
   <script>
     document.getElementById('insp-run').addEventListener('click',()=>{

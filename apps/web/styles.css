@@ -1,38 +1,9 @@
+@import "tokens.css";
+
 :root {
-  color-scheme: light;
-  --bg: #f5f5f0;
-  --surface: #fffefa;
-  --surface-muted: #eeefe8;
-  --text: #19221d;
-  --muted: #5f6a62;
-  --line: #dfe3d9;
-  --accent: #c6f36a;
-  --accent-strong: #a6d94c;
-  --accent-ink: #243319;
-  --accent-text: #536f32;
-  --amber: #f1bd68;
-  --shadow: 0 18px 48px rgba(29, 43, 33, 0.07);
-  --radius: 18px;
-  --card: var(--surface);
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-base);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-}
-
-body.dark {
-  color-scheme: dark;
-  --bg: #141a16;
-  --surface: #1c241f;
-  --surface-muted: #242e28;
-  --text: #eff4e9;
-  --muted: #a5b1a4;
-  --line: #354139;
-  --accent: #c6f36a;
-  --accent-strong: #d6ff8c;
-  --accent-ink: #202b17;
-  --accent-text: #c6f36a;
-  --amber: #f1bd68;
-  --shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
   --card: var(--surface);
 }
 
@@ -237,7 +208,7 @@ kbd {
   height: 7px;
   margin-right: 0.35rem;
   border-radius: 50%;
-  background: #77b34b;
+  background: var(--accent-strong);
   vertical-align: 1px;
 }
 
@@ -370,7 +341,7 @@ p {
 
 .orbit-cross {
   position: absolute;
-  color: #8ebc49;
+  color: var(--accent-strong);
   font-size: 1.15rem;
 }
 
@@ -407,7 +378,7 @@ p {
 }
 
 .heading-period {
-  color: #8ebc49;
+  color: var(--accent-strong);
 }
 
 .section-aside {
@@ -976,3 +947,4 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+

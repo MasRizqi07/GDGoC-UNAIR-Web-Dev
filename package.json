@@ -11,14 +11,16 @@
     "build": "npm run build --workspaces --if-present",
     "test": "node --check apps/web/script.js && npm run test --workspaces --if-present && npm run test:e2e",
     "test:e2e": "playwright test",
+    "check:links": "linkinator apps/web --recurse --check-fragments",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.40.0",
     "cross-env": "^7.0.3",
+    "linkinator": "^8.1.0",
     "rimraf": "^5.0.5"
   }
 }
-

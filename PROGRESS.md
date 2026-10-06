@@ -214,3 +214,18 @@ This backend is a stub moving to `examples/`, so it does not affect the product.
   - All examples are confirmed to be stubs/course materials and isolated from the main workspace.
 - **Security & Secrets:** Verified that `live-server` is the sole source of the 10 vulnerabilities (all Dev-Only). Confirmed `innerHTML` XSS risk in tutorials. No real secrets found in working tree or git history.
 - **Mutation Check:** The `G` shortcut guard in `apps/web/script.js` was manually mutated (removed `!typing` check), which successfully broke the tests (RED). Reverting it restored the tests (GREEN), confirming test reliability.
+
+---
+
+## PHASE 3 — Frontend Shell & Accessibility
+
+**Status:** VERIFIED
+
+### Evidence
+- **Link check:** `npm run check:links` (using linkinator) yields 0 broken links across all HTML files.
+- **Accessibility:** `@axe-core/playwright` test (`a11y.spec.js`) added and passes on `index.html` and the 3 tutorials in both light and dark modes with 0 serious/critical violations.
+- **Keyboard navigation:** `keyboard-nav.spec.js` added and demonstrates tabbing reaches the playground widgets panel and correctly focuses the tutorial links, as well as checking the shell structure.
+- **HTML Rewrites:** `tutorials/widgets.html`, `tutorials/todo.html`, and `tutorials/inspector.html` all successfully updated with a standard semantic `<header>`, `<main id="main-content">`, `<a href="#main-content" class="skip-link">`, and `<footer>`. The headings in `widgets.html` were correctly ordered to match accessibility requirements.
+- **Tokens extraction:** Shared CSS variables migrated to `tokens.css`, replacing hardcoded colors in `styles.css`.
+- **Existing tests:** `npm test` at the root executes all 19 tests perfectly (10 playground specs + 8 a11y specs + 1 keyboard spec), exit code 0.
+- **Dependencies:** `linkinator` and `@axe-core/playwright` added to `package.json` devDependencies as required for the a11y checks and link checking gate.

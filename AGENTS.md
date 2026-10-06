@@ -55,3 +55,4 @@ NEXT: waiting for "LANJUT PHASE N+1"
 - Starting a dev server and leaving it running: always stop it, and check the port is free before each test run.
 - Continuing to the next phase without the owner's explicit message.
 </anti_patterns>
+
