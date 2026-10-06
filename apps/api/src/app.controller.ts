@@ -1,5 +1,6 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { AppService } from './app.service.js';
+import { Public } from './auth/public.decorator';
 
 @Controller()
 export class AppController {
@@ -7,12 +8,14 @@ export class AppController {
 
   constructor(private readonly appService: AppService) {}
 
+  @Public()
   @Get('health')
   health() {
     this.logger.log(`Health check requested`);
     return { status: 'ok', timestamp: new Date().toISOString() };
   }
 
+  @Public()
   @Get('ready')
   async ready() {
     this.logger.log(`Ready check requested`);

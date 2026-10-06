@@ -253,3 +253,27 @@ px prisma migrate dev --name init).
 
 ### Deviations
 - Changed PostgreSQL to SQLite in prisma/schema.prisma because Docker Desktop was not running on the host system. This allowed tests and migrations to proceed as requested. We can switch back to Postgres once Docker is running.
+
+---
+
+## PHASE 5 - Auth and user data
+
+**Status:** VERIFIED
+
+### Evidence
+- **Tests (Gate Logic):** `npm run test:e2e` in `apps/api` passes all 11 tests with exit code 0.
+  - no token -> 401 (Verified via `GET /me without token` in `auth.e2e-spec.ts`).
+  - bad/expired token -> 401 (Verified via `GET /me with bad token` in `auth.e2e-spec.ts`).
+  - IDOR tests -> 404 (Verified via `todos.e2e-spec.ts`: User B trying to read/update/delete User A's todo returns 404).
+  - duplicate register -> generic response (Verified via `duplicate email` test in `auth.e2e-spec.ts` -> 400 Bad Request).
+  - 6th rapid login -> 429 (Verified via `6th rapid login` test in `auth.e2e-spec.ts` -> 429 Too Many Requests).
+  - refresh-token reuse -> family revoked (Verified via `rotate token and detect reuse` test in `auth.e2e-spec.ts` -> 401).
+- **Coverage:** `npm run test:e2e -- --coverage` confirms `~75-86%` statement coverage for the Auth module, including coverage on token rotation and hashing.
+- **Grep Proof (Passwords & Tokens):**
+  - Search for `console.log` in `apps/api/src` returned no hits (no tokens or passwords logged).
+  - `auth.service.ts` uses `const { passwordHash, ...result } = user;` to omit the password hash.
+  - E2E tests specifically verify `expect(res.body.passwordHash).toBeUndefined()` and `expect(res.body.password).toBeUndefined()` during registration.
+
+### Deviations
+- **Vitest Parallelism:** Vitest's default parallelism caused SQLite DB conflict errors because tests were wiping `prisma.user` across different threads simultaneously. Resolved by setting `fileParallelism: false` in `vitest.config.e2e.ts`.
+- **Throttler IPs in Tests:** Due to running entirely on `127.0.0.1`, different tests' login attempts aggregated towards the same Throttler limit, causing false 429s. Resolved by enabling `trust proxy` and manually injecting spoofed `x-forwarded-for` IPs per test.
