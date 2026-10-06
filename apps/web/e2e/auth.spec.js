@@ -105,3 +105,4 @@ test.describe('Auth Flow & User Isolation', () => {
     expect(browserErrors.filter(e => !e.includes('favicon.ico'))).toEqual([]);
   });
 });
+
