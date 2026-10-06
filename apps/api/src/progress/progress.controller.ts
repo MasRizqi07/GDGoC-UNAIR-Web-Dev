@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Put, Body, Req } from '@nestjs/common';
-import { ProgressService } from './progress.service';
-import { UpdateProgressDto } from '@gdgoc/contracts';
-import { Request } from 'express';
+import { ProgressService } from './progress.service.js';
+import type { UpdateProgressDto } from '@gdgoc/contracts';
+import type { Request } from 'express';
 
 @Controller('progress')
 export class ProgressController {

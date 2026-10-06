@@ -1,9 +1,9 @@
-import { PrismaService } from '../src/prisma/prisma.service';
+import { PrismaService } from '../src/prisma/prisma.service.js';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from './../src/app.module';
-import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter';
+import { AppModule } from './../src/app.module.js';
+import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter.js';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;

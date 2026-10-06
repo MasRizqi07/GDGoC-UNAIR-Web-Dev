@@ -15,11 +15,15 @@ test('keyboard navigation reaches playground tabs and tutorials', async ({ page 
   await page.keyboard.press('Tab');
   await expect(page.locator(':focus')).toHaveAttribute('id', 'theme-toggle');
 
-  // 4. Quick note
+  // 4. Auth button
+  await page.keyboard.press('Tab');
+  await expect(page.locator(':focus')).toHaveAttribute('id', 'auth-button');
+
+  // 5. Quick note
   await page.keyboard.press('Tab');
   await expect(page.locator(':focus')).toHaveAttribute('id', 'open-modal');
 
-  // 5. Tabs (Widgets is active by default, so it receives focus first in the tablist)
+  // 6. Tabs (Widgets is active by default, so it receives focus first in the tablist)
   await page.keyboard.press('Tab');
   await expect(page.locator(':focus')).toHaveAttribute('id', 'tab-widgets');
   

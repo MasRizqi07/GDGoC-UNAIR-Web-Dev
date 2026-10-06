@@ -1,3 +1,6 @@
+import { api } from './api-client.js';
+import { checkSession, initAuthUI, getCurrentUser } from './auth.js';
+
 class DemoTabs extends HTMLElement {
   constructor() {
     super();
@@ -190,6 +193,9 @@ class TodoApp extends HTMLElement {
     this.shadowRoot.addEventListener('submit', this.onSubmit);
     this.shadowRoot.addEventListener('click', this.onClick);
     window.addEventListener('storage', this.onStorage);
+    this.onAuth = () => setTimeout(() => this.renderList(), 0);
+    document.addEventListener('auth:login', this.onAuth);
+    document.addEventListener('auth:logout', this.onAuth);
     this.renderList();
   }
 
@@ -197,6 +203,8 @@ class TodoApp extends HTMLElement {
     this.shadowRoot.removeEventListener('submit', this.onSubmit);
     this.shadowRoot.removeEventListener('click', this.onClick);
     window.removeEventListener('storage', this.onStorage);
+    document.removeEventListener('auth:login', this.onAuth);
+    document.removeEventListener('auth:logout', this.onAuth);
   }
 
   render() {
@@ -228,7 +236,16 @@ class TodoApp extends HTMLElement {
     `;
   }
 
-  readTodos() {
+  async readTodos() {
+    if (getCurrentUser()) {
+      try {
+        const todos = await api.todos.list();
+        return { ok: true, todos: todos.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) };
+      } catch (error) {
+        return { ok: false, error };
+      }
+    }
+
     let raw;
     try {
       raw = localStorage.getItem(this.storageKey);
@@ -249,7 +266,7 @@ class TodoApp extends HTMLElement {
     }
   }
 
-  writeTodos(todos) {
+  async writeTodosLocal(todos) {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(todos));
       return { ok: true };
@@ -260,11 +277,11 @@ class TodoApp extends HTMLElement {
 
   reportStorageError(error) {
     const status = this.shadowRoot.getElementById('status');
-    status.textContent = 'Tasks could not be saved or read in this browser. Check storage permissions and reload.';
-    console.error('Todo storage error:', error);
+    status.textContent = 'Tasks could not be saved or read. Check your connection or storage permissions.';
+    console.error('Todo error:', error);
   }
 
-  onSubmit(event) {
+  async onSubmit(event) {
     if (event.target.id !== 'form') return;
     event.preventDefault();
 
@@ -274,57 +291,88 @@ class TodoApp extends HTMLElement {
       input.focus();
       return;
     }
+    
+    const submitBtn = this.shadowRoot.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
 
-    const loaded = this.readTodos();
-    if (!loaded.ok) {
-      this.reportStorageError(loaded.error);
-      return;
+    if (getCurrentUser()) {
+      try {
+        await api.todos.create(value);
+        input.value = '';
+        await this.renderList();
+      } catch (error) {
+        this.reportStorageError(error);
+      }
+    } else {
+      const loaded = await this.readTodos();
+      if (!loaded.ok) {
+        this.reportStorageError(loaded.error);
+        submitBtn.disabled = false;
+        return;
+      }
+      const result = await this.writeTodosLocal([...loaded.todos, value]);
+      if (!result.ok) {
+        this.reportStorageError(result.error);
+        submitBtn.disabled = false;
+        return;
+      }
+      input.value = '';
+      await this.renderList();
     }
-
-    const result = this.writeTodos([...loaded.todos, value]);
-    if (!result.ok) {
-      this.reportStorageError(result.error);
-      return;
-    }
-
-    input.value = '';
-    this.renderList();
+    submitBtn.disabled = false;
     input.focus();
   }
 
-  onClick(event) {
+  async onClick(event) {
     const button = event.target.closest?.('button[data-remove]');
     if (!button || !this.shadowRoot.contains(button)) return;
 
-    const loaded = this.readTodos();
-    if (!loaded.ok) {
-      this.reportStorageError(loaded.error);
-      return;
+    button.disabled = true;
+
+    if (getCurrentUser()) {
+      try {
+        await api.todos.remove(button.dataset.remove);
+        await this.renderList();
+      } catch (error) {
+        this.reportStorageError(error);
+        button.disabled = false;
+        return;
+      }
+    } else {
+      const loaded = await this.readTodos();
+      if (!loaded.ok) {
+        this.reportStorageError(loaded.error);
+        button.disabled = false;
+        return;
+      }
+
+      const index = Number(button.dataset.remove);
+      if (!Number.isInteger(index) || index < 0 || index >= loaded.todos.length) return;
+
+      const todos = loaded.todos.filter((_, itemIndex) => itemIndex !== index);
+      const result = await this.writeTodosLocal(todos);
+      if (!result.ok) {
+        this.reportStorageError(result.error);
+        button.disabled = false;
+        return;
+      }
+
+      await this.renderList();
+      const nextRemoveButton = this.shadowRoot.querySelector(`button[data-remove="${Math.min(index, todos.length - 1)}"]`);
+      (nextRemoveButton || this.shadowRoot.getElementById('input')).focus();
     }
-
-    const index = Number(button.dataset.remove);
-    if (!Number.isInteger(index) || index < 0 || index >= loaded.todos.length) return;
-
-    const todos = loaded.todos.filter((_, itemIndex) => itemIndex !== index);
-    const result = this.writeTodos(todos);
-    if (!result.ok) {
-      this.reportStorageError(result.error);
-      return;
-    }
-
-    this.renderList();
-    const nextRemoveButton = this.shadowRoot.querySelector(`button[data-remove="${Math.min(index, todos.length - 1)}"]`);
-    (nextRemoveButton || this.shadowRoot.getElementById('input')).focus();
   }
 
-  onStorage(event) {
-    if (event.key === this.storageKey || event.key === null) this.renderList();
+  async onStorage(event) {
+    if (event.key === this.storageKey || event.key === null) await this.renderList();
   }
 
-  renderList() {
+  async renderList() {
     const list = this.shadowRoot.getElementById('list');
     const status = this.shadowRoot.getElementById('status');
-    const loaded = this.readTodos();
+    status.textContent = 'Loading...';
+    
+    const loaded = await this.readTodos();
     list.replaceChildren();
 
     if (!loaded.ok) {
@@ -344,19 +392,21 @@ class TodoApp extends HTMLElement {
     loaded.todos.forEach((todo, index) => {
       const item = document.createElement('li');
       const text = document.createElement('span');
-      text.textContent = todo;
+      text.textContent = typeof todo === 'string' ? todo : todo.text;
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'remove';
-      remove.dataset.remove = String(index);
-      remove.setAttribute('aria-label', `Remove task: ${todo}`);
+      remove.dataset.remove = typeof todo === 'string' ? String(index) : todo.id;
+      remove.setAttribute('aria-label', `Remove task: ${text.textContent}`);
       remove.textContent = 'Remove';
       item.append(text, remove);
       list.append(item);
     });
-    status.textContent = `${loaded.todos.length} ${loaded.todos.length === 1 ? 'task' : 'tasks'} saved in this browser.`;
+    status.textContent = `${loaded.todos.length} ${loaded.todos.length === 1 ? 'task' : 'tasks'} saved ${getCurrentUser() ? 'to your account' : 'in this browser'}.`;
   }
 }
+
+
 
 class DomInspector extends HTMLElement {
   constructor() {
@@ -494,16 +544,37 @@ function initializePage() {
   const themeButton = document.getElementById('theme-toggle');
   const body = document.body;
 
-  function setTheme(dark) {
+  async function setTheme(dark, skipSync = false) {
     body.classList.toggle('dark', dark);
     themeButton?.setAttribute('aria-pressed', String(dark));
     const label = themeButton?.querySelector('.theme-label');
     if (label) label.textContent = dark ? 'Light mode' : 'Dark mode';
     localStorage.setItem('ui-dark', dark ? '1' : '0');
+    
+    if (getCurrentUser() && !skipSync) {
+      try {
+        await api.preferences.updateTheme(dark ? '1' : '0');
+      } catch (err) {
+        console.error('Failed to sync theme', err);
+      }
+    }
   }
 
-  setTheme(localStorage.getItem('ui-dark') === '1');
+  setTheme(localStorage.getItem('ui-dark') === '1', true);
   themeButton?.addEventListener('click', () => setTheme(!body.classList.contains('dark')));
+  
+  document.addEventListener('auth:login', async () => {
+    try {
+      const prefs = await api.preferences.get();
+      if (prefs && prefs.theme) {
+        setTheme(prefs.theme === '1', true);
+      } else {
+        await api.preferences.updateTheme(body.classList.contains('dark') ? '1' : '0');
+      }
+    } catch (err) {
+      console.error('Failed to get preferences', err);
+    }
+  });
 
   const modal = document.getElementById('modal');
   const openModalButton = document.getElementById('open-modal');
@@ -576,6 +647,9 @@ function initializePage() {
       window.setTimeout(() => header.classList.remove('highlight'), 900);
     }
   });
+  
+  initAuthUI();
+  checkSession();
 }
 
 if (document.readyState === 'loading') {

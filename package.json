@@ -10,7 +10,7 @@
     "dev": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspaces --if-present",
     "test": "node --check apps/web/script.js && npm run test --workspaces --if-present && npm run test:e2e",
-    "test:e2e": "playwright test",
+    "test:e2e": "cross-env DATABASE_URL=file:./test.db npx prisma db push --skip-generate --schema=apps/api/prisma/schema.prisma --accept-data-loss && playwright test",
     "check:links": "linkinator apps/web --recurse --check-fragments",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",

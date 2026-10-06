@@ -3,6 +3,7 @@ import { AppModule } from './app.module.js';
 import helmet from 'helmet';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
 import cookieParser from 'cookie-parser';
+import express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,8 +17,8 @@ async function bootstrap() {
   });
 
   // Limit body size to 100kb as requested
-  app.use(require('express').json({ limit: '100kb' }));
-  app.use(require('express').urlencoded({ extended: true, limit: '100kb' }));
+  app.use(express.json({ limit: '100kb' }));
+  app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
   app.useGlobalFilters(new GlobalExceptionFilter());
 

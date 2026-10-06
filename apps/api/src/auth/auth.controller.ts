@@ -1,9 +1,9 @@
 import { Controller, Post, Body, Req, Res, Get, Delete, UnauthorizedException } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto } from '@gdgoc/contracts';
-import { Request, Response } from 'express';
-import { Public } from './public.decorator';
-import { UsersService } from '../users/users.service';
+import { AuthService } from './auth.service.js';
+import type { RegisterDto, LoginDto } from '@gdgoc/contracts';
+import type {  Request, Response  } from 'express';
+import { Public } from './public.decorator.js';
+import { UsersService } from '../users/users.service.js';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
@@ -15,8 +15,30 @@ export class AuthController {
 
   @Public()
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register(@Body() registerDto: RegisterDto, @Res({ passthrough: true }) res: Response) {
+    await this.authService.register(registerDto);
+    
+    const { user, accessToken, refreshToken } = await this.authService.login({
+      email: registerDto.email,
+      password: registerDto.password,
+    });
+
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+    });
+    
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/api/v1/auth/refresh',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return user;
   }
 
   @Public()
@@ -72,6 +94,7 @@ export class AuthController {
     return { status: 'success' };
   }
 
+  @Public()
   @Post('logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const oldRefreshToken = req.cookies?.['refresh_token'];
@@ -84,10 +107,21 @@ export class AuthController {
     return { status: 'success' };
   }
 
+  @Public()
   @Get('me')
-  async getMe(@Req() req: Request) {
-    const user = await this.usersService.findById((req as any).user.sub);
-    if (!user) throw new UnauthorizedException();
+  async getMe(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const userId = (req as any).user?.sub;
+    if (!userId) {
+      res.status(204);
+      return;
+    }
+    
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      res.status(204);
+      return;
+    }
+    
     const { passwordHash, ...result } = user;
     return result;
   }

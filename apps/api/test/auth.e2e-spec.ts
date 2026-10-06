@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from './../src/app.module';
-import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from './../src/app.module.js';
+import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter.js';
+import { PrismaService } from '../src/prisma/prisma.service.js';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;

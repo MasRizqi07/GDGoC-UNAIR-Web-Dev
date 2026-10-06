@@ -1,6 +1,6 @@
 import { Injectable, ConflictException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto } from '@gdgoc/contracts';
+import { PrismaService } from '../prisma/prisma.service.js';
+import type { RegisterDto } from '@gdgoc/contracts';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()

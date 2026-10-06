@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, Delete, Req } from '@nestjs/common';
-import { TodosService } from './todos.service';
-import { CreateTodoDto, UpdateTodoDto } from '@gdgoc/contracts';
-import { Request } from 'express';
+import { TodosService } from './todos.service.js';
+import type { CreateTodoDto, UpdateTodoDto } from '@gdgoc/contracts';
+import type { Request } from 'express';
 
 @Controller('todos')
 export class TodosController {

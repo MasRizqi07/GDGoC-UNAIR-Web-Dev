@@ -948,3 +948,52 @@ p {
   }
 }
 
+
+
+/* Auth Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.form-group label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.form-group input {
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+}
+.field-error {
+  color: var(--amber);
+  font-size: 0.72rem;
+  min-height: 1.2rem;
+}
+.form-global-error {
+  color: var(--amber);
+  font-size: 0.8rem;
+  text-align: center;
+  min-height: 1.4rem;
+}
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.form-actions .button {
+  width: 100%;
+}
+
+@media (max-width: 400px) { .header-actions { flex-wrap: wrap; justify-content: flex-end; } }

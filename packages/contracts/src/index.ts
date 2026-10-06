@@ -4,8 +4,8 @@ export const UserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   role: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
 export const RegisterDtoSchema = z.object({
@@ -23,8 +23,8 @@ export const TodoSchema = z.object({
   text: z.string().min(1, 'Task cannot be empty').max(200, 'Task is too long'),
   completed: z.boolean(),
   userId: z.string().uuid(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
 export const CreateTodoDtoSchema = z.object({
@@ -48,7 +48,7 @@ export const UpdatePreferenceDtoSchema = z.object({
 export const ProgressSchema = z.object({
   tutorialId: z.string(),
   completed: z.boolean(),
-  completedAt: z.date().nullable(),
+  completedAt: z.coerce.date().nullable(),
 });
 
 export const UpdateProgressDtoSchema = z.object({

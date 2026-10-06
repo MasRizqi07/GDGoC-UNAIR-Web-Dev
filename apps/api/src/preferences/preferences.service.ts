@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { UpdatePreferenceDto } from '@gdgoc/contracts';
+import { PrismaService } from '../prisma/prisma.service.js';
+import type { UpdatePreferenceDto } from '@gdgoc/contracts';
 
 @Injectable()
 export class PreferencesService {

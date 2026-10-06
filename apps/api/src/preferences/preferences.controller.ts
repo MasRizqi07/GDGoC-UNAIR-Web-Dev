@@ -1,7 +1,7 @@
 import { Controller, Get, Put, Body, Req } from '@nestjs/common';
-import { PreferencesService } from './preferences.service';
-import { UpdatePreferenceDto } from '@gdgoc/contracts';
-import { Request } from 'express';
+import { PreferencesService } from './preferences.service.js';
+import type { UpdatePreferenceDto } from '@gdgoc/contracts';
+import type { Request } from 'express';
 
 @Controller('preferences')
 export class PreferencesController {

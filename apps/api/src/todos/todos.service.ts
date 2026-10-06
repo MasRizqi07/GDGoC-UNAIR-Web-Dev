@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateTodoDto, UpdateTodoDto } from '@gdgoc/contracts';
+import { PrismaService } from '../prisma/prisma.service.js';
+import type { CreateTodoDto, UpdateTodoDto } from '@gdgoc/contracts';
 
 @Injectable()
 export class TodosService {

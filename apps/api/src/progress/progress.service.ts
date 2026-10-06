@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { UpdateProgressDto } from '@gdgoc/contracts';
+import { PrismaService } from '../prisma/prisma.service.js';
+import type { UpdateProgressDto } from '@gdgoc/contracts';
 
 @Injectable()
 export class ProgressService {

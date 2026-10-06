@@ -32,3 +32,5 @@ coverage/
 *.sln
 *.sw?
 
+*.db
+*.db-journal

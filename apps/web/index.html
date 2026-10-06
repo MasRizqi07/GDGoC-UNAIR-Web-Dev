@@ -22,6 +22,9 @@
         <span class="button-icon" aria-hidden="true">◐</span>
         <span class="theme-label">Dark mode</span>
       </button>
+      <button class="button button-quiet" id="auth-button" type="button">
+        <span aria-hidden="true">👤</span> <span id="auth-label">Login</span>
+      </button>
       <button class="button button-primary" id="open-modal" type="button">
         <span aria-hidden="true">＋</span> Quick note
       </button>
@@ -165,6 +168,32 @@
     </div>
   </div>
 
-  <script src="script.js" defer></script>
+  <div id="auth-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" tabindex="-1" hidden>
+    <div class="modal-panel">
+      <button id="close-auth-modal" class="icon-button close" type="button" aria-label="Close auth" data-close-auth-modal>×</button>
+      <p class="eyebrow" id="auth-eyebrow">WELCOME BACK</p>
+      <h2 id="auth-modal-title">Sign in to<br /><span>sync progress.</span></h2>
+      
+      <form id="auth-form" class="auth-form">
+        <div class="form-group">
+          <label for="auth-email">Email address</label>
+          <input type="email" id="auth-email" name="email" required autocomplete="email" />
+          <span class="field-error" id="auth-email-error" aria-live="polite"></span>
+        </div>
+        <div class="form-group">
+          <label for="auth-password">Password</label>
+          <input type="password" id="auth-password" name="password" required autocomplete="current-password" minlength="8" />
+          <span class="field-error" id="auth-password-error" aria-live="polite"></span>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="button button-primary" id="auth-submit">Login</button>
+          <button type="button" class="button button-quiet" id="auth-toggle-mode">Need an account? Register</button>
+        </div>
+        <p class="form-global-error" id="auth-global-error" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/script.js"></script>
 </body>
 </html>
