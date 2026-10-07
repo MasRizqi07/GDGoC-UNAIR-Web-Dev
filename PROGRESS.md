@@ -241,7 +241,7 @@ This backend is a stub moving to `examples/`, so it does not affect the product.
 pm run typecheck, 
 pm run lint, and 
 pm run test in pps/api all completed successfully (exit code 0).
-- **Prisma Setup:** Changed provider to PostgreSQL temporarily because Docker Desktop was unreachable, allowing migrations to pass on an empty DB (
+- **Prisma Setup:** Changed provider to SQLite temporarily because Docker Desktop was unreachable, allowing migrations to pass on an empty DB (
 px prisma migrate dev --name init).
 - **Endpoints verified:**
   - curl -i http://localhost:3000/api/v1/health -> 200 OK
@@ -252,7 +252,8 @@ px prisma migrate dev --name init).
 - **Dependencies installed:** All needed API dependencies including NestJS, Prisma, Zod, and Helmet were successfully installed and workspace linking is working.
 
 ### Deviations
-- Changed PostgreSQL to PostgreSQL in prisma/schema.prisma because Docker Desktop was not running on the host system. This allowed tests and migrations to proceed as requested. We can switch back to Postgres once Docker is running.
+- Changed PostgreSQL to SQLite in prisma/schema.prisma because Docker Desktop was not running on the host system. This allowed tests and migrations to proceed as requested. 
+- **NOTE:** Phase 4/5 ran on SQLite; migrated to PostgreSQL in Phase 6R.
 
 ---
 
@@ -275,7 +276,7 @@ px prisma migrate dev --name init).
   - E2E tests specifically verify `expect(res.body.passwordHash).toBeUndefined()` and `expect(res.body.password).toBeUndefined()` during registration.
 
 ### Deviations
-- **Vitest Parallelism:** Vitest's default parallelism caused PostgreSQL DB conflict errors because tests were wiping `prisma.user` across different threads simultaneously. Resolved by setting `fileParallelism: false` in `vitest.config.e2e.ts`.
+- **Vitest Parallelism:** Vitest's default parallelism caused SQLite DB conflict errors because tests were wiping `prisma.user` across different threads simultaneously. Resolved by setting `fileParallelism: false` in `vitest.config.e2e.ts`.
 - **Throttler IPs in Tests:** Due to running entirely on `127.0.0.1`, different tests' login attempts aggregated towards the same Throttler limit, causing false 429s. Resolved by enabling `trust proxy` and manually injecting spoofed `x-forwarded-for` IPs per test.
 
 ---
@@ -286,7 +287,7 @@ px prisma migrate dev --name init).
 
 ### Evidence
 - **Tests (Gate Logic):** 
-  - `npx playwright test` ran all 20 Playwright E2E tests against the real NestJS API using a `test db` PostgreSQL database.
+  - `npx playwright test` ran all 20 Playwright E2E tests against the real NestJS API using a `test.db` SQLite database.
   - All 20 tests passed successfully.
   - `auth.spec.js` specifically confirmed the full flow: register -> add todo -> reload -> persists -> logout -> login -> present -> second user isolation.
   - Guest mode tests remain green, proving they work fine without authentication.
