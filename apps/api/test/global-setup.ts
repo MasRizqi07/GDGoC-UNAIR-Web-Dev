@@ -8,3 +8,4 @@ const assertTestDb = require(path.join(__dirname, '../../../scripts/assert-test-
 export default async function setup() {
   await assertTestDb();
 }
+

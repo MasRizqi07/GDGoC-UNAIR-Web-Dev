@@ -11,3 +11,4 @@ module.exports = async function setupTestDB() {
   console.log('Resetting test database...');
   execSync('npx prisma migrate reset --force --skip-seed', { stdio: 'inherit', env: process.env });
 };
+
