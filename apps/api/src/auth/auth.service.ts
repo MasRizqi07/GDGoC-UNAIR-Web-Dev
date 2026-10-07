@@ -5,6 +5,8 @@ import type { RegisterDto, LoginDto } from '@gdgoc/contracts';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service.js';
 
+import * as crypto from 'crypto';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -12,6 +14,10 @@ export class AuthService {
     private jwtService: JwtService,
     private prisma: PrismaService,
   ) {}
+
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
 
   async register(registerDto: RegisterDto) {
     try {
@@ -46,16 +52,17 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync(payload);
     
     // Refresh token rotation
-    const family = crypto.randomUUID();
+    const familyId = crypto.randomUUID();
     const refreshToken = crypto.randomUUID();
+    const tokenHash = this.hashToken(refreshToken);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
 
     await this.prisma.refreshToken.create({
       data: {
-        token: refreshToken,
+        tokenHash,
         userId: user.id,
-        family,
+        familyId,
         expiresAt,
       },
     });
@@ -68,8 +75,9 @@ export class AuthService {
   }
 
   async refresh(oldToken: string) {
+    const tokenHash = this.hashToken(oldToken);
     const tokenRecord = await this.prisma.refreshToken.findUnique({
-      where: { token: oldToken },
+      where: { tokenHash },
     });
 
     if (!tokenRecord) {
@@ -79,7 +87,7 @@ export class AuthService {
     if (tokenRecord.revoked) {
       // Refresh token reuse detected! Revoke whole family.
       await this.prisma.refreshToken.updateMany({
-        where: { family: tokenRecord.family },
+        where: { familyId: tokenRecord.familyId },
         data: { revoked: true },
       });
       throw new UnauthorizedException('Token reuse detected');
@@ -101,14 +109,15 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email, role: user.role };
     const accessToken = await this.jwtService.signAsync(payload);
     const newRefreshToken = crypto.randomUUID();
+    const newTokenHash = this.hashToken(newRefreshToken);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     await this.prisma.refreshToken.create({
       data: {
-        token: newRefreshToken,
+        tokenHash: newTokenHash,
         userId: user.id,
-        family: tokenRecord.family,
+        familyId: tokenRecord.familyId,
         expiresAt,
       },
     });
@@ -120,8 +129,9 @@ export class AuthService {
   }
 
   async logout(refreshToken: string) {
+    const tokenHash = this.hashToken(refreshToken);
     await this.prisma.refreshToken.updateMany({
-      where: { token: refreshToken },
+      where: { tokenHash },
       data: { revoked: true },
     });
   }

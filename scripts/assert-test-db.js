@@ -23,13 +23,17 @@ function validateTestDbUrl(dbUrl) {
 }
 
 module.exports = async function setupTestDB() {
-  const dbUrl = process.env.TEST_DATABASE_URL || 'postgresql://dev:devpassword@localhost:5432/gdgoc_test?schema=public';
+  const dbUrl = process.env.TEST_DATABASE_URL || 'postgresql://dev:devpassword@127.0.0.1:5432/gdgoc_test?schema=public';
   validateTestDbUrl(dbUrl);
   
   // Set DATABASE_URL so prisma commands run against the test db
   process.env.DATABASE_URL = dbUrl;
   console.log('Resetting test database...');
-  execSync('npx prisma migrate reset --force --skip-seed', { stdio: 'inherit', env: process.env });
+  execSync('npx prisma migrate reset --force --skip-seed', { 
+    stdio: 'inherit', 
+    env: process.env,
+    cwd: require('path').join(__dirname, '../apps/api')
+  });
 };
 
 module.exports.validateTestDbUrl = validateTestDbUrl;

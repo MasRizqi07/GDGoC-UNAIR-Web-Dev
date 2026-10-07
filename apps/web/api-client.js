@@ -107,10 +107,10 @@ export const api = {
       const data = await apiClient('/todos');
       return data.map(todo => TodoSchema.parse(todo));
     },
-    async create(text, completed = false) {
+    async create(text) {
       const data = await apiClient('/todos', {
         method: 'POST',
-        body: JSON.stringify({ text, completed }),
+        body: JSON.stringify({ text }),
       });
       return TodoSchema.parse(data);
     },

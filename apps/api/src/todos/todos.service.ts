@@ -33,6 +33,17 @@ export class TodosService {
     });
   }
 
+  async reorder(userId: string, todoIds: string[]) {
+    const updates = todoIds.map((id, index) =>
+      this.prisma.todo.updateMany({
+        where: { id, userId },
+        data: { position: index },
+      })
+    );
+    await this.prisma.$transaction(updates);
+    return this.findAll(userId);
+  }
+
   async remove(id: string, userId: string) {
     await this.findOne(id, userId); // Ensure ownership
     return this.prisma.todo.delete({ where: { id } });

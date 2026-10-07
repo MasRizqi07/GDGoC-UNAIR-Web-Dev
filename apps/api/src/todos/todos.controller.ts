@@ -25,6 +25,12 @@ export class TodosController {
     return this.todosService.findOne(id, userId);
   }
 
+  @Put('reorder')
+  reorder(@Req() req: Request, @Body() dto: { todoIds: string[] }) {
+    const userId = (req as any).user.sub;
+    return this.todosService.reorder(userId, dto.todoIds);
+  }
+
   @Put(':id')
   update(@Req() req: Request, @Param('id') id: string, @Body() updateTodoDto: UpdateTodoDto) {
     const userId = (req as any).user.sub;

@@ -243,10 +243,10 @@ class TodoApp extends HTMLElement {
         try { rawLocal = localStorage.getItem(this.storageKey); } catch(e){}
         const localTodos = rawLocal ? JSON.parse(rawLocal) : [];
         if (localTodos.length > 0) {
-          for (const t of localTodos) {
-            await api.todos.create(typeof t === 'string' ? t : t.text, typeof t === 'string' ? false : !!t.completed);
-          }
           localStorage.removeItem(this.storageKey);
+          for (const t of localTodos) {
+            await api.todos.create(typeof t === 'string' ? t : t.text);
+          }
         }
         const todos = await api.todos.list();
         return { ok: true, todos: todos.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) };
@@ -508,10 +508,114 @@ class DomInspector extends HTMLElement {
   }
 }
 
+class TutorialProgress extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.storageKeyPrefix = 'demo-tutorial-';
+    this.onToggle = this.onToggle.bind(this);
+    this.onAuth = () => setTimeout(() => this.renderState(), 0);
+  }
+
+  get tutorialId() {
+    return this.getAttribute('tutorial-id') || 'unknown';
+  }
+
+  connectedCallback() {
+    this.render();
+    this.button = this.shadowRoot.getElementById('toggle');
+    this.button.addEventListener('click', this.onToggle);
+    document.addEventListener('auth:login', this.onAuth);
+    document.addEventListener('auth:logout', this.onAuth);
+    this.renderState();
+  }
+
+  disconnectedCallback() {
+    this.button?.removeEventListener('click', this.onToggle);
+    document.removeEventListener('auth:login', this.onAuth);
+    document.removeEventListener('auth:logout', this.onAuth);
+  }
+
+  render() {
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host{display:block;margin:1.5rem 0;}
+        button{display:inline-flex;min-height:42px;align-items:center;gap:.5rem;padding:.6rem .85rem;border:1px solid transparent;border-radius:9px;background:var(--accent);color:var(--accent-ink);cursor:pointer;font-family:inherit;font-size:.75rem;font-weight:700;line-height:1;transition:background-color 150ms ease,transform 150ms ease}
+        button:hover:not(:disabled){background:var(--accent-strong);transform:translateY(-1px)}
+        button:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+        button[aria-pressed="true"]{border-color:var(--line);background:var(--surface);color:var(--text);cursor:default;transform:none;opacity:1;}
+        button:focus-visible{outline:3px solid var(--accent-strong);outline-offset:3px}
+      </style>
+      <button id="toggle" type="button" aria-pressed="false">Mark Tutorial as Complete</button>
+      <p id="error" style="color:var(--error);font-size:0.75rem;margin-top:0.5rem;display:none;"></p>
+    `;
+  }
+
+  async getProgress() {
+    if (getCurrentUser()) {
+      try {
+        const list = await api.progress.list();
+        const progress = list.find(p => p.tutorialId === this.tutorialId);
+        return progress ? progress.completed : false;
+      } catch (err) {
+        console.error('Failed to get tutorial progress', err);
+        return false;
+      }
+    }
+    return localStorage.getItem(this.storageKeyPrefix + this.tutorialId) === '1';
+  }
+
+  async setProgress(completed) {
+    if (getCurrentUser()) {
+      try {
+        await api.progress.update(this.tutorialId, completed);
+        return true;
+      } catch (err) {
+        console.error('Failed to update tutorial progress', err);
+        this.shadowRoot.getElementById('error').textContent = 'Failed to sync progress. Please try again.';
+        this.shadowRoot.getElementById('error').style.display = 'block';
+        return false;
+      }
+    }
+    localStorage.setItem(this.storageKeyPrefix + this.tutorialId, completed ? '1' : '0');
+    return true;
+  }
+
+  async renderState() {
+    this.button.disabled = true;
+    this.button.textContent = 'Loading...';
+    this.shadowRoot.getElementById('error').style.display = 'none';
+
+    const completed = await this.getProgress();
+    this.setButtonState(completed);
+  }
+
+  setButtonState(completed) {
+    this.button.disabled = completed;
+    this.button.setAttribute('aria-pressed', String(completed));
+    this.button.textContent = completed ? 'Tutorial Completed' : 'Mark Tutorial as Complete';
+  }
+
+  async onToggle() {
+    if (this.button.disabled || this.button.getAttribute('aria-pressed') === 'true') return;
+    
+    this.button.disabled = true;
+    this.button.textContent = 'Saving...';
+    
+    const success = await this.setProgress(true);
+    if (success) {
+      this.setButtonState(true);
+    } else {
+      this.setButtonState(false);
+    }
+  }
+}
+
 if (!customElements.get('demo-tabs')) customElements.define('demo-tabs', DemoTabs);
 if (!customElements.get('drag-list')) customElements.define('drag-list', DragList);
 if (!customElements.get('todo-app')) customElements.define('todo-app', TodoApp);
 if (!customElements.get('dom-inspector')) customElements.define('dom-inspector', DomInspector);
+if (!customElements.get('tutorial-progress')) customElements.define('tutorial-progress', TutorialProgress);
 
 function initializePage() {
   const tabButtons = [...document.querySelectorAll('.tabs [role="tab"][data-target]')];

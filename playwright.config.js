@@ -21,7 +21,7 @@ module.exports = defineConfig({
     reuseExistingServer: false,
     timeout: 120_000,
     env: {
-      DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgresql://dev:devpassword@localhost:5432/gdgoc_test?schema=public'
+      DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgresql://dev:devpassword@127.0.0.1:5432/gdgoc_test?schema=public'
     }
   },
 });

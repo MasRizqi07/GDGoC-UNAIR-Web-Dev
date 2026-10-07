@@ -105,9 +105,108 @@ test.describe('Auth Flow & User Isolation', () => {
     expect(browserErrors.filter(e => !e.includes('favicon.ico'))).toEqual([]);
   });
 
-  test.skip('theme and tutorial-progress sync for a logged-in user', async ({ page }) => {});
-  test.skip('one-time idempotent import of local todos at first login', async ({ page }) => {});
-  test.skip('error state and an offline state', async ({ page }) => {});
+  test('theme and tutorial-progress sync for a logged-in user', async ({ page }) => {
+    const userEmail = `sync-${randomId()}@test.com`;
+    await page.goto('/');
+    
+    // Register & Login
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('button', { name: 'Need an account? Register' }).click();
+    await page.locator('#auth-email').fill(userEmail);
+    await page.locator('#auth-password').fill('password123');
+    await page.getByRole('button', { name: 'Register' }).click();
+
+    // Set theme to dark
+    const themeBtn = page.locator('#theme-toggle');
+    await themeBtn.click(); // enable dark mode
+    await expect(page.locator('body')).toHaveClass(/dark/);
+    await expect(themeBtn).toHaveAttribute('aria-pressed', 'true');
+
+    // Go to a tutorial and complete it
+    await page.goto('/tutorials/todo.html');
+    await page.getByRole('button', { name: 'Mark Tutorial as Complete' }).click();
+    await expect(page.getByRole('button', { name: 'Tutorial Completed' })).toBeVisible();
+
+    // Logout
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Logout' }).click();
+    
+    // Reset theme locally to light
+    await themeBtn.click(); // disable dark mode
+    await expect(page.locator('body')).not.toHaveClass(/dark/);
+
+    // Login again
+    await page.getByRole('button', { name: 'Login' }).first().click();
+    await page.locator('#auth-email').fill(userEmail);
+    await page.locator('#auth-password').fill('password123');
+    await page.locator('#auth-submit').click();
+
+    // Theme should automatically sync to dark
+    await expect(page.locator('body')).toHaveClass(/dark/);
+
+    // Tutorial progress should be synced
+    await page.goto('/tutorials/todo.html');
+    await expect(page.getByRole('button', { name: 'Tutorial Completed' })).toBeVisible();
+  });
+
+  test('one-time idempotent import of local todos at first login', async ({ page }) => {
+    const userEmail = `import-${randomId()}@test.com`;
+    await page.goto('/');
+    
+    // Add local todos as guest
+    await page.getByRole('tab', { name: /Todo & state/ }).click();
+    const todoApp = page.locator('todo-app');
+    await todoApp.getByRole('textbox', { name: 'New task' }).fill('Local Task 1');
+    await todoApp.getByRole('textbox', { name: 'New task' }).press('Enter');
+    await todoApp.getByRole('textbox', { name: 'New task' }).fill('Local Task 2');
+    await todoApp.getByRole('textbox', { name: 'New task' }).press('Enter');
+    
+    await expect(todoApp.getByText('Local Task 1')).toBeVisible();
+
+    // Register & Login
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('button', { name: 'Need an account? Register' }).click();
+    await page.locator('#auth-email').fill(userEmail);
+    await page.locator('#auth-password').fill('password123');
+    await page.getByRole('button', { name: 'Register' }).click();
+
+    // Wait for sync
+    await page.waitForTimeout(1000);
+    
+    // Reload page, the imported todos should be fetched from server
+    await page.reload();
+    await page.getByRole('tab', { name: /Todo & state/ }).click();
+    await expect(todoApp.getByText('Local Task 1')).toBeVisible();
+    await expect(todoApp.getByText('Local Task 2')).toBeVisible();
+    
+    // The localStorage should be cleared
+    const stored = await page.evaluate(() => localStorage.getItem('demo-todos-v1'));
+    expect(stored).toBeNull();
+  });
+
+  test('error state and an offline state', async ({ page, context }) => {
+    await page.goto('/');
+    
+    // Register & Login first so it tries to use the API
+    await page.getByRole('button', { name: 'Login' }).first().click();
+    await page.getByRole('button', { name: 'Need an account? Register' }).click();
+    await page.locator('#auth-email').fill(`offline-${Date.now()}@test.com`);
+    await page.locator('#auth-password').fill('password123');
+    await page.locator('#auth-submit').click();
+
+    await page.getByRole('tab', { name: /Todo & state/ }).click();
+    
+    // Simulate offline
+    await context.setOffline(true);
+    
+    const todoApp = page.locator('todo-app');
+    await todoApp.getByRole('textbox', { name: 'New task' }).fill('Offline Task');
+    await todoApp.getByRole('textbox', { name: 'New task' }).press('Enter');
+    
+    await expect(todoApp.locator('.status')).toContainText('connection');
+    
+    await context.setOffline(false);
+  });
   test('one 401 -> refresh -> retry success path', async ({ page }) => {
     let meCalls = 0;
     let refreshCalls = 0;

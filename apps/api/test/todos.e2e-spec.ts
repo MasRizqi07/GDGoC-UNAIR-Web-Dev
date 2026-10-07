@@ -98,4 +98,24 @@ describe('TodosController (e2e)', () => {
     const res = await request(app.getHttpServer()).get('/api/v1/todos');
     expect(res.status).toBe(401);
   });
+
+  it('PUT /api/v1/todos/reorder should update positions of todos', async () => {
+    // Create another todo for user A
+    const todo2Res = await request(app.getHttpServer())
+      .post('/api/v1/todos')
+      .set('Cookie', userAToken)
+      .send({ text: 'User A task 2' });
+    const todo2Id = todo2Res.body.id;
+
+    // Reorder: put todo2 before userATodoId
+    const res = await request(app.getHttpServer())
+      .put('/api/v1/todos/reorder')
+      .set('Cookie', userAToken)
+      .send({ todoIds: [todo2Id, userATodoId] });
+    
+    expect(res.status).toBe(200);
+    const updatedTodos = res.body;
+    expect(updatedTodos.find((t: any) => t.id === todo2Id).position).toBe(0);
+    expect(updatedTodos.find((t: any) => t.id === userATodoId).position).toBe(1);
+  });
 });

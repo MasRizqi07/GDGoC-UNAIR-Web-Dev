@@ -101,25 +101,6 @@ export function initAuthUI() {
       } else {
         user = await api.auth.register(email, password);
       }
-      
-      // Attempt to sync local todos
-      const localTodosStr = localStorage.getItem('demo-todos-v1');
-      if (localTodosStr) {
-        try {
-          const localTodos = JSON.parse(localTodosStr);
-          if (Array.isArray(localTodos) && localTodos.length > 0) {
-            // we have local todos, if the user has 0 todos, we can sync
-            const remoteTodos = await api.todos.list();
-            if (remoteTodos.length === 0) {
-              for (const text of localTodos) {
-                await api.todos.create(text, false);
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Failed to import local todos', err);
-        }
-      }
 
       currentUser = user;
       document.dispatchEvent(new CustomEvent('auth:login', { detail: { user } }));
