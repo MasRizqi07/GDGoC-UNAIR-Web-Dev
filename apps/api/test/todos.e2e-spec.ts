@@ -43,7 +43,7 @@ describe('TodosController (e2e)', () => {
     
     expect(resA.status).toBe(201);
     expect(resA.headers['set-cookie']).toBeDefined();
-    userAToken = resA.headers['set-cookie'].find((c: string) => c.startsWith('access_token=')).split(';')[0];
+    userAToken = (resA.headers['set-cookie'] as unknown as string[]).find((c: string) => c.startsWith('access_token='))!.split(';')[0];
 
     // Register user B
     await request(app.getHttpServer())
@@ -58,7 +58,7 @@ describe('TodosController (e2e)', () => {
       
     expect(resB.status).toBe(201);
     expect(resB.headers['set-cookie']).toBeDefined();
-    userBToken = resB.headers['set-cookie'].find((c: string) => c.startsWith('access_token=')).split(';')[0];
+    userBToken = (resB.headers['set-cookie'] as unknown as string[]).find((c: string) => c.startsWith('access_token='))!.split(';')[0];
 
     // User A creates a todo
     const todoRes = await request(app.getHttpServer())
@@ -92,5 +92,10 @@ describe('TodosController (e2e)', () => {
       .delete(`/api/v1/todos/${userATodoId}`)
       .set('Cookie', userBToken);
     expect(res.status).toBe(404);
+  });
+
+  it('GET /api/v1/todos should return 401 without token', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/todos');
+    expect(res.status).toBe(401);
   });
 });

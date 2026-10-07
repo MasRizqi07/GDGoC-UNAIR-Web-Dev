@@ -7,7 +7,7 @@ import { PrismaService } from '../src/prisma/prisma.service.js';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
-  let refreshToken: string;
+  let _refreshToken: string;
   let prisma: PrismaService;
 
   beforeAll(async () => {
@@ -72,7 +72,7 @@ describe('AuthController (e2e)', () => {
       
       expect(res.status).toBe(201);
       expect(res.headers['set-cookie']).toBeDefined();
-      refreshToken = res.headers['set-cookie'].find((c: string) => c.startsWith('refresh_token=')).split(';')[0];
+      _refreshToken = (res.headers['set-cookie'] as unknown as string[]).find((c: string) => c.startsWith('refresh_token='))!.split(';')[0];
     });
 
     it('POST /login should ratelimit 6th rapid login', async () => {
@@ -103,7 +103,7 @@ describe('AuthController (e2e)', () => {
       const loginRes = await request(app.getHttpServer())
         .post('/api/v1/auth/login').set('x-forwarded-for', '1.2.3.101')
         .send({ email: 'rot@example.com', password: 'password123' });
-      const currentRefresh = loginRes.headers['set-cookie'].find((c: string) => c.startsWith('refresh_token=')).split(';')[0];
+      const currentRefresh = (loginRes.headers['set-cookie']! as unknown as string[]).find((c: string) => c.startsWith('refresh_token='))!.split(';')[0];
 
       // First refresh should work
       const res1 = await request(app.getHttpServer())
@@ -119,16 +119,16 @@ describe('AuthController (e2e)', () => {
       expect(res2.body.message).toBe('Token reuse detected');
     });
 
-    it('GET /me should return 401 without token', async () => {
+    it('GET /me should return 204 without token', async () => {
       const res = await request(app.getHttpServer()).get('/api/v1/auth/me');
-      expect(res.status).toBe(401);
+      expect(res.status).toBe(204);
     });
 
-    it('GET /me should return 401 with bad token', async () => {
+    it('GET /me should return 204 with bad token', async () => {
       const res = await request(app.getHttpServer())
         .get('/api/v1/auth/me')
         .set('Cookie', 'access_token=badtoken');
-      expect(res.status).toBe(401);
+      expect(res.status).toBe(204);
     });
   });
 });

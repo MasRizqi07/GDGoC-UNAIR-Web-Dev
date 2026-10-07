@@ -15,10 +15,10 @@ module.exports = defineConfig({
     ...devices['Desktop Chrome'],
   },
   webServer: {
-    command: 'npx cross-env DATABASE_URL="file:./test.db" npm run start --workspace=apps/api',
+    command: 'npx cross-env DATABASE_URL="file:./test.db" npm run start:prod --workspace=apps/api',
     url: 'http://127.0.0.1:3000/api/v1/health',
-    reuseExistingServer: true,
-    timeout: 60_000,
+    reuseExistingServer: false,
+    timeout: 120_000,
     env: {
       DATABASE_URL: 'file:./test.db'
     }

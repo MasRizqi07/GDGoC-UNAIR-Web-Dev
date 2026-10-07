@@ -17,7 +17,7 @@ export class AuthService {
     try {
       const user = await this.usersService.create(registerDto);
       // Omit password hash from response
-      const { passwordHash, ...result } = user;
+      const { passwordHash: _passwordHash, ...result } = user;
       return result;
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -39,7 +39,7 @@ export class AuthService {
     }
 
     // Omit passwordHash
-    const { passwordHash, ...userData } = user;
+    const { passwordHash: _passwordHash, ...userData } = user;
     const payload = { sub: user.id, email: user.email, role: user.role };
     
     // Generate tokens

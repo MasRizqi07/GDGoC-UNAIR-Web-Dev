@@ -239,6 +239,15 @@ class TodoApp extends HTMLElement {
   async readTodos() {
     if (getCurrentUser()) {
       try {
+        let rawLocal;
+        try { rawLocal = localStorage.getItem(this.storageKey); } catch(e){}
+        const localTodos = rawLocal ? JSON.parse(rawLocal) : [];
+        if (localTodos.length > 0) {
+          for (const t of localTodos) {
+            await api.todos.create(typeof t === 'string' ? t : t.text, typeof t === 'string' ? false : !!t.completed);
+          }
+          localStorage.removeItem(this.storageKey);
+        }
         const todos = await api.todos.list();
         return { ok: true, todos: todos.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) };
       } catch (error) {

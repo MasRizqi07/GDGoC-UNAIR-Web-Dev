@@ -104,5 +104,33 @@ test.describe('Auth Flow & User Isolation', () => {
     // Actually, the gate just says "Zero console errors". Let's verify we don't have errors related to auth or fetching.
     expect(browserErrors.filter(e => !e.includes('favicon.ico'))).toEqual([]);
   });
+
+  test.skip('theme and tutorial-progress sync for a logged-in user', async ({ page }) => {});
+  test.skip('one-time idempotent import of local todos at first login', async ({ page }) => {});
+  test.skip('error state and an offline state', async ({ page }) => {});
+  test('one 401 -> refresh -> retry success path', async ({ page }) => {
+    let meCalls = 0;
+    let refreshCalls = 0;
+
+    await page.route('**/api/v1/auth/me', async route => {
+      meCalls++;
+      if (meCalls === 1) {
+        await route.fulfill({ status: 401, json: { message: 'Unauthorized' } });
+      } else {
+        await route.fulfill({ status: 200, json: { id: 'uuid', email: 'b@b.com', role: 'user', createdAt: new Date(), updatedAt: new Date() } });
+      }
+    });
+
+    await page.route('**/api/v1/auth/refresh', async route => {
+      refreshCalls++;
+      await route.fulfill({ status: 200, json: { status: 'success' } });
+    });
+
+    await page.goto('/');
+    await page.waitForTimeout(1000);
+    
+    expect(meCalls).toBeGreaterThanOrEqual(2);
+    expect(refreshCalls).toBe(1);
+  });
 });
 

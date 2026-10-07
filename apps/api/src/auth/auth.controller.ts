@@ -122,7 +122,7 @@ export class AuthController {
       return;
     }
     
-    const { passwordHash, ...result } = user;
+    const { passwordHash: _passwordHash, ...result } = user;
     return result;
   }
 
