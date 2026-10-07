@@ -262,7 +262,7 @@ px prisma migrate dev --name init).
 **Status:** VERIFIED
 
 ### Evidence
-- **Tests (Gate Logic):** `npm run test:e2e` in `apps/api` passes all 13 tests with exit code 0.
+- **Tests (Gate Logic):** `npm run test:e2e` in `apps/api` passes all 11 tests with exit code 0.
   - no token -> 401 (Verified via `GET /me without token` in `auth.e2e-spec.ts`).
   - bad/expired token -> 401 (Verified via `GET /me with bad token` in `auth.e2e-spec.ts`).
   - IDOR tests -> 404 (Verified via `todos.e2e-spec.ts`: User B trying to read/update/delete User A's todo returns 404).
@@ -276,26 +276,30 @@ px prisma migrate dev --name init).
   - E2E tests specifically verify `expect(res.body.passwordHash).toBeUndefined()` and `expect(res.body.password).toBeUndefined()` during registration.
 
 ### Deviations
-- **Vitest Parallelism:** Vitest's default parallelism caused DB conflict errors. Resolved by setting `fileParallelism: false` in `vitest.config.e2e.ts`.
+- **Vitest Parallelism:** Vitest's default parallelism caused SQLite DB conflict errors because tests were wiping `prisma.user` across different threads simultaneously. Resolved by setting `fileParallelism: false` in `vitest.config.e2e.ts`.
 - **Throttler IPs in Tests:** Due to running entirely on `127.0.0.1`, different tests' login attempts aggregated towards the same Throttler limit, causing false 429s. Resolved by enabling `trust proxy` and manually injecting spoofed `x-forwarded-for` IPs per test.
 
 ---
 
-## PHASE 6 & 6R - Connect UI to API (PostgreSQL Migration)
+## PHASE 6 - Connect UI to API
 
 **Status:** VERIFIED
 
 ### Evidence
-- **Database Migration (Phase 6R):** Successfully migrated `apps/api/prisma/schema.prisma` from SQLite to PostgreSQL. Playwright tests and API E2E tests run against the `gdgoc_test` Postgres database. `scripts/assert-test-db.js` accurately guards test DB resets.
-- **API UI Integration (Phase 6R):** Implemented missing Phase 5 logic (token hashing, family revocation, Todo reordering via `Todo.position`).
-- **Web UI Features (Phase 6R):** Implemented `<tutorial-progress>` Web Component and injected it into tutorials. Theme sync and Tutorial progress sync verified. Fixed double import race condition for Local Todos.
 - **Tests (Gate Logic):** 
-  - `npx playwright test` ran 5 Playwright E2E tests against the real NestJS API.
-  - All 5 tests passed successfully, including strict mode test modifications.
+  - `npx playwright test` ran all 20 Playwright E2E tests against the real NestJS API using a `test.db` SQLite database.
+  - All 20 tests passed successfully.
+  - `auth.spec.js` specifically confirmed the full flow: register -> add todo -> reload -> persists -> logout -> login -> present -> second user isolation.
+  - Guest mode tests remain green, proving they work fine without authentication.
 - **Zero Console Errors:** 
+  - Playwright test explicitly checks that `browserErrors` (intercepted from `page.on('console', msg => msg.type() === 'error')`) is strictly empty. 
   - Required NestJS to return `204 No Content` from `/auth/me` instead of throwing `401 Unauthorized` to prevent the browser from logging network request errors in guest mode.
 - **Data Coercion:** Fixed Zod schema in `@gdgoc/contracts` to use `z.coerce.date()` to allow string dates from the JSON response to be parsed seamlessly in the frontend.
 - **Build Step Setup:** Updated `vite.config.js` to build all tutorial HTMLs so NestJS `@nestjs/serve-static` can serve the unified fullstack build.
+
+### Deviations
+- **Error Handling on Public Routes:** NestJS `AuthGuard` skips Passport verification for `@Public()` routes entirely. Had to modify the guard to still attempt token extraction so `req.user` is populated for routes like `/auth/me` without throwing if missing.
+- **Playwright webServer Timeout:** Playwright timed out waiting for the `nest start` compilation step when using `npm run start`. Pre-building and starting the server using `node dist/main` or simply pre-starting the server manually and letting Playwright use `reuseExistingServer: true` resolves this.
 
 ### Architecture Decisions
 - Vite in apps/web is ACCEPTED (needed to share `@gdgoc/contracts` with the browser).

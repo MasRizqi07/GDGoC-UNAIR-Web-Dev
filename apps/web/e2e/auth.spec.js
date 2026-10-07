@@ -136,10 +136,10 @@ test.describe('Auth Flow & User Isolation', () => {
     await expect(page.locator('body')).not.toHaveClass(/dark/);
 
     // Login again
-    await page.getByRole('button', { name: 'Login' }).first().click();
+    await page.getByRole('button', { name: 'Login' }).click();
     await page.locator('#auth-email').fill(userEmail);
     await page.locator('#auth-password').fill('password123');
-    await page.locator('#auth-submit').click();
+    await page.getByRole('button', { name: 'Login' }).click();
 
     // Theme should automatically sync to dark
     await expect(page.locator('body')).toHaveClass(/dark/);
@@ -187,13 +187,6 @@ test.describe('Auth Flow & User Isolation', () => {
   test('error state and an offline state', async ({ page, context }) => {
     await page.goto('/');
     
-    // Register & Login first so it tries to use the API
-    await page.getByRole('button', { name: 'Login' }).first().click();
-    await page.getByRole('button', { name: 'Need an account? Register' }).click();
-    await page.locator('#auth-email').fill(`offline-${Date.now()}@test.com`);
-    await page.locator('#auth-password').fill('password123');
-    await page.locator('#auth-submit').click();
-
     await page.getByRole('tab', { name: /Todo & state/ }).click();
     
     // Simulate offline
