@@ -94,6 +94,14 @@ describe('TodosController (e2e)', () => {
     expect(res.status).toBe(404);
   });
 
+  it('PUT /api/v1/todos/reorder should return 404 if User B tries to reorder User A todo', async () => {
+    const res = await request(app.getHttpServer())
+      .put('/api/v1/todos/reorder')
+      .set('Cookie', userBToken)
+      .send({ todoIds: [userATodoId] });
+    expect(res.status).toBe(404);
+  });
+
   it('GET /api/v1/todos should return 401 without token', async () => {
     const res = await request(app.getHttpServer()).get('/api/v1/todos');
     expect(res.status).toBe(401);

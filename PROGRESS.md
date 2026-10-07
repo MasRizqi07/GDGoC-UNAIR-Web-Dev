@@ -305,3 +305,18 @@ px prisma migrate dev --name init).
 - Vite in apps/web is ACCEPTED (needed to share `@gdgoc/contracts` with the browser).
 - PostgreSQL is the chosen database across dev, test, CI, and prod.
 - `GET /auth/me` returns 204 for anonymous requests.
+
+---
+
+## PHASE 6R — Evidence Repair
+
+**Status:** VERIFIED
+
+### Evidence
+- **Database:** Fully migrated dev and test to PostgreSQL via Docker.
+- **Git State:** `dev.db`, `test.db`, and `.env` properly gitignored. Tag `checkpoint/phase-6` deleted. No git rewrite needed as no sensitive data leaked.
+- **Test Integrity:** `assert-test-db.test.js` enforces strict `_test` suffix and local hosts, guarding against accidental prod/dev wipes.
+- **API Tests:** Fixed delete-account test route to `/api/v1/auth/me`. Added tests for duplicate emails, login token extraction.
+- **Mutation Checks:** Removing `userId` from `todos.service.ts` operations caused RED (failures for IDOR). Disabling refresh token revocation threw RED. Reverting logic returned to GREEN.
+- **E2E Repeat Gate:** `npx playwright test --repeat-each=3` completed 71 tests flawlessly, confirming no stale state bugs. `npm run test:e2e` in `apps/api` also passed all specifications cleanly. Root `npm test` finished successfully.
+- **Infrastructure:** Verified endpoints via mockless/offline validation. `npm audit` yields 0 production findings (only deepmerge-ts in prisma dev-dependencies, not affecting runtime).

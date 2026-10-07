@@ -34,9 +34,15 @@ export class TodosService {
   }
 
   async reorder(userId: string, todoIds: string[]) {
+    const existing = await this.prisma.todo.findMany({
+      where: { id: { in: todoIds }, userId }
+    });
+    if (existing.length !== todoIds.length) {
+      throw new NotFoundException();
+    }
     const updates = todoIds.map((id, index) =>
-      this.prisma.todo.updateMany({
-        where: { id, userId },
+      this.prisma.todo.update({
+        where: { id },
         data: { position: index },
       })
     );
