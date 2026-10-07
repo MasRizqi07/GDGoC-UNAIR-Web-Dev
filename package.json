@@ -9,8 +9,9 @@
   "scripts": {
     "dev": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspaces --if-present",
-    "test": "node --check apps/web/script.js && node --test scripts/assert-test-db.test.js && npx playwright test",
+    "test": "node --check apps/web/script.js && node --test scripts/assert-test-db.test.js && npm run test:e2e --workspace=apps/api && npm run build && npx playwright test",
     "test:e2e": "npm run build && npx playwright test",
+    "verify": "node scripts/verify.js",
     "check:links": "linkinator apps/web --recurse --check-fragments",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",

@@ -320,3 +320,9 @@ px prisma migrate dev --name init).
 - **Mutation Checks:** Removing `userId` from `todos.service.ts` operations caused RED (failures for IDOR). Disabling refresh token revocation threw RED. Reverting logic returned to GREEN.
 - **E2E Repeat Gate:** `npx playwright test --repeat-each=3` completed 71 tests flawlessly, confirming no stale state bugs. `npm run test:e2e` in `apps/api` also passed all specifications cleanly. Root `npm test` finished successfully.
 - **Infrastructure:** Verified endpoints via mockless/offline validation. `npm audit` yields 0 production findings (only deepmerge-ts in prisma dev-dependencies, not affecting runtime).
+
+### True Endpoints
+- **Auth:** `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/me`, `DELETE /api/v1/auth/me`
+- **Todos:** `POST /api/v1/todos`, `GET /api/v1/todos`, `GET /api/v1/todos/:id`, `PUT /api/v1/todos/:id`, `PUT /api/v1/todos/reorder`, `DELETE /api/v1/todos/:id`
+- **Preferences:** `GET /api/v1/preferences`, `PUT /api/v1/preferences`
+- **Progress:** `GET /api/v1/progress`, `GET /api/v1/progress/:tutorialId`, `PUT /api/v1/progress/:tutorialId`
