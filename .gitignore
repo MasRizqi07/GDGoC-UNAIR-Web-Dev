@@ -35,3 +35,4 @@ coverage/
 *.db
 *.db-journal
 *.sqlite
+*.tsbuildinfo
