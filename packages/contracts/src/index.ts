@@ -9,12 +9,12 @@ export const UserSchema = z.object({
 });
 
 export const RegisterDtoSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().trim().toLowerCase(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 export const LoginDtoSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().trim().toLowerCase(),
   password: z.string(),
 });
 

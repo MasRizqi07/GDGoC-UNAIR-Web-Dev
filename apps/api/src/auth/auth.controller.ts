@@ -1,10 +1,12 @@
-import { Controller, Post, Body, Req, Res, Get, Delete, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, Req, Res, Get, Delete, UnauthorizedException, UsePipes } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
+import { RegisterDtoSchema, LoginDtoSchema } from '@gdgoc/contracts';
 import type { RegisterDto, LoginDto } from '@gdgoc/contracts';
 import type {  Request, Response  } from 'express';
 import { Public } from './public.decorator.js';
 import { UsersService } from '../users/users.service.js';
 import { Throttle } from '@nestjs/throttler';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe.js';
 
 @Controller('auth')
 export class AuthController {
@@ -15,6 +17,7 @@ export class AuthController {
 
   @Public()
   @Post('register')
+  @UsePipes(new ZodValidationPipe(RegisterDtoSchema))
   async register(@Body() registerDto: RegisterDto, @Res({ passthrough: true }) res: Response) {
     await this.authService.register(registerDto);
     
@@ -44,6 +47,7 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
+  @UsePipes(new ZodValidationPipe(LoginDtoSchema))
   async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const { user, accessToken, refreshToken } = await this.authService.login(loginDto);
     

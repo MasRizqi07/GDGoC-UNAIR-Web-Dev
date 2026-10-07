@@ -5,6 +5,16 @@ import { AppModule } from './../src/app.module.js';
 import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
+function checkNoSecrets(obj: any) {
+  if (!obj || typeof obj !== 'object') return;
+  expect(obj.password).toBeUndefined();
+  expect(obj.passwordHash).toBeUndefined();
+  expect(obj.tokenHash).toBeUndefined();
+  for (const key of Object.keys(obj)) {
+    checkNoSecrets(obj[key]);
+  }
+}
+
 describe('TodosController (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -107,6 +117,21 @@ describe('TodosController (e2e)', () => {
     expect(res.status).toBe(401);
   });
 
+  it('GET /api/v1/todos should return todos without secrets', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/todos')
+      .set('Cookie', userAToken);
+    expect(res.status).toBe(200);
+    checkNoSecrets(res.body);
+  });
+
+  it('GET /api/v1/todos should return 401 with bad token', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/todos')
+      .set('Cookie', 'access_token=garbage');
+    expect(res.status).toBe(401);
+  });
+
   it('PUT /api/v1/todos/reorder should update positions of todos', async () => {
     // Create another todo for user A
     const todo2Res = await request(app.getHttpServer())
@@ -125,5 +150,6 @@ describe('TodosController (e2e)', () => {
     const updatedTodos = res.body;
     expect(updatedTodos.find((t: any) => t.id === todo2Id).position).toBe(0);
     expect(updatedTodos.find((t: any) => t.id === userATodoId).position).toBe(1);
+    checkNoSecrets(res.body);
   });
 });

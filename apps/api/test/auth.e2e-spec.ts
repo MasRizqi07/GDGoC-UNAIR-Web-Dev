@@ -4,6 +4,18 @@ import request from 'supertest';
 import { AppModule } from './../src/app.module.js';
 import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import * as fs from 'fs';
+import * as path from 'path';
+
+function checkNoSecrets(obj: any) {
+  if (!obj || typeof obj !== 'object') return;
+  expect(obj.password).toBeUndefined();
+  expect(obj.passwordHash).toBeUndefined();
+  expect(obj.tokenHash).toBeUndefined();
+  for (const key of Object.keys(obj)) {
+    checkNoSecrets(obj[key]);
+  }
+}
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
@@ -45,8 +57,42 @@ describe('AuthController (e2e)', () => {
       
       expect(res.status).toBe(201);
       expect(res.body.email).toBe('test@example.com');
-      expect(res.body.passwordHash).toBeUndefined();
-      expect(res.body.password).toBeUndefined();
+      checkNoSecrets(res.body);
+    });
+
+    it('should capture server logs during register and login and not leak secrets', async () => {
+      const logFile = path.join(__dirname, 'test-server.log');
+      fs.writeFileSync(logFile, '');
+      
+      const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+      const originalStderrWrite = process.stderr.write.bind(process.stderr);
+      
+      process.stdout.write = (chunk: any, encoding?: any, cb?: any) => {
+        fs.appendFileSync(logFile, chunk);
+        return originalStdoutWrite(chunk, encoding, cb);
+      };
+      process.stderr.write = (chunk: any, encoding?: any, cb?: any) => {
+        fs.appendFileSync(logFile, chunk);
+        return originalStderrWrite(chunk, encoding, cb);
+      };
+
+      try {
+        await request(app.getHttpServer())
+          .post('/api/v1/auth/register').set('x-forwarded-for', '1.2.3.118')
+          .send({ email: 'log@example.com', password: 'secretpassword' });
+        
+        await request(app.getHttpServer())
+          .post('/api/v1/auth/login').set('x-forwarded-for', '1.2.3.119')
+          .send({ email: 'log@example.com', password: 'secretpassword' });
+
+        const logContent = fs.readFileSync(logFile, 'utf8');
+        expect(logContent).not.toContain('secretpassword');
+        expect(logContent).not.toContain('$2b$'); // bcrypt hash
+      } finally {
+        process.stdout.write = originalStdoutWrite;
+        process.stderr.write = originalStderrWrite;
+        if (fs.existsSync(logFile)) fs.unlinkSync(logFile);
+      }
     });
 
     it('POST /register should return generic response for duplicate email including casing', async () => {
@@ -61,6 +107,22 @@ describe('AuthController (e2e)', () => {
       expect(res.status).toBe(400); // Generic response
     });
 
+    it('POST /register and login with mixed case', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/register').set('x-forwarded-for', '1.2.3.100')
+        .send({ email: 'MiXed@example.test', password: 'password123' });
+
+      const res1 = await request(app.getHttpServer())
+        .post('/api/v1/auth/login').set('x-forwarded-for', '1.2.3.101')
+        .send({ email: 'MiXed@example.test', password: 'password123' });
+      expect(res1.status).toBe(201);
+
+      const res2 = await request(app.getHttpServer())
+        .post('/api/v1/auth/login').set('x-forwarded-for', '1.2.3.102')
+        .send({ email: 'mixed@example.test', password: 'password123' });
+      expect(res2.status).toBe(201);
+    });
+
     it('POST /login should login and set cookies', async () => {
       await request(app.getHttpServer())
         .post('/api/v1/auth/register').set('x-forwarded-for', '1.2.3.14')
@@ -72,6 +134,7 @@ describe('AuthController (e2e)', () => {
       
       expect(res.status).toBe(201);
       expect(res.headers['set-cookie']).toBeDefined();
+      checkNoSecrets(res.body);
     });
 
     it('POST /login should ratelimit 6th rapid login', async () => {
@@ -79,17 +142,18 @@ describe('AuthController (e2e)', () => {
         .post('/api/v1/auth/register').set('x-forwarded-for', '1.2.3.94')
         .send({ email: 'rate@example.com', password: 'password123' });
 
-      // 5 attempts
+      // 5 attempts with varying casing
+      const casings = ['rate@example.com', 'RATE@example.com', 'RaTe@example.com', 'rAtE@example.com', 'rate@example.com'];
       for (let i = 0; i < 5; i++) {
         await request(app.getHttpServer())
           .post('/api/v1/auth/login').set('x-forwarded-for', '1.2.3.23')
-          .send({ email: 'rate@example.com', password: 'password123' });
+          .send({ email: casings[i], password: 'password123' });
       }
       
       // 6th attempt
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login').set('x-forwarded-for', '1.2.3.23')
-        .send({ email: 'rate@example.com', password: 'password123' });
+        .send({ email: 'RATE@example.com', password: 'password123' });
       
       expect(res.status).toBe(429);
     });
@@ -149,6 +213,7 @@ describe('AuthController (e2e)', () => {
     it('GET /me should return 204 without token', async () => {
       const res = await request(app.getHttpServer()).get('/api/v1/auth/me');
       expect(res.status).toBe(204);
+      checkNoSecrets(res.body);
     });
 
     it('GET /me should return 204 with bad token', async () => {
@@ -156,12 +221,14 @@ describe('AuthController (e2e)', () => {
         .get('/api/v1/auth/me')
         .set('Cookie', 'access_token=badtoken');
       expect(res.status).toBe(204);
+      checkNoSecrets(res.body);
     });
 
     it('DELETE /api/v1/auth/me removes every row of the user', async () => {
-      await request(app.getHttpServer())
+      const regRes = await request(app.getHttpServer())
         .post('/api/v1/auth/register').set('x-forwarded-for', '1.2.3.42')
         .send({ email: 'delete@example.com', password: 'password123' });
+      const userId = regRes.body.id;
 
       const loginRes = await request(app.getHttpServer())
         .post('/api/v1/auth/login').set('x-forwarded-for', '1.2.3.43')
@@ -172,19 +239,15 @@ describe('AuthController (e2e)', () => {
         .post('/api/v1/todos')
         .set('Cookie', accessToken)
         .send({ text: 'To be deleted' });
-
-      const beforeUserCount = await prisma.user.count();
-      const beforeTodoCount = await prisma.todo.count();
-      const beforeTokenCount = await prisma.refreshToken.count();
       
       const delRes = await request(app.getHttpServer())
         .delete('/api/v1/auth/me')
         .set('Cookie', accessToken);
       expect(delRes.status).toBe(200);
 
-      expect(await prisma.user.count()).toBe(beforeUserCount - 1);
-      expect(await prisma.todo.count()).toBe(beforeTodoCount - 1);
-      expect(await prisma.refreshToken.count()).toBe(beforeTokenCount - 2);
+      expect(await prisma.user.count({ where: { id: userId } })).toBe(0);
+      expect(await prisma.todo.count({ where: { userId } })).toBe(0);
+      expect(await prisma.refreshToken.count({ where: { userId } })).toBe(0);
     });
   });
 });
