@@ -47,4 +47,11 @@ const __dirname = dirname(__filename);
     }
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret || jwtSecret.length < 32 || jwtSecret.includes('generate-a-strong-secret')) {
+      throw new Error('Invalid JWT_SECRET: must be at least 32 characters long and not a placeholder');
+    }
+  }
+}
