@@ -56,3 +56,10 @@ NEXT: waiting for "LANJUT PHASE N+1"
 - Continuing to the next phase without the owner's explicit message.
 </anti_patterns>
 
+<process_safety_rules>
+- Never kill processes by name (`Get-Process node | Stop-Process -Force` is forbidden: it can kill the editor's own Node processes). Start servers with a captured PID, and stop only that PID, or the PID shown by `netstat -ano | findstr :PORT`.
+- Never use `git add .` or `git add -A`. Stage explicit paths, then show `git diff --cached --stat` before every commit. Each commit message must describe the actual diff.
+- Servers you start must be stopped before you finish. Show `netstat` proving ports 3000, 5500, 5432-test are in the expected state at the end.
+- A `.skip()`, `.todo()`, or `.fixme()` in any spec makes the phase UNVERIFIED. No exceptions.
+- Do not add a tag for a phase unless STATUS is VERIFIED.
+</process_safety_rules>
