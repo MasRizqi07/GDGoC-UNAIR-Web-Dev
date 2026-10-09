@@ -68,8 +68,8 @@ test.describe('Stage 8.1: UI Acceptance and Accessibility', () => {
       };
     });
 
-    expect(motionTokens.transitionFast).toBe('0ms');
-    expect(motionTokens.transitionNormal).toBe('0ms');
+    expect(['0s', '0ms']).toContain(motionTokens.transitionFast);
+    expect(['0s', '0ms']).toContain(motionTokens.transitionNormal);
   });
 
   test('prefers-color-scheme is respected on first visit with persisted manual override', async ({ page, context }) => {
