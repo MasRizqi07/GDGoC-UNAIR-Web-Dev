@@ -13,7 +13,9 @@
     "POST /logout should revoke the family",
     "GET /me should return 204 without token",
     "GET /me should return 204 with bad token",
-    "DELETE /api/v1/auth/me removes every row of the user"
+    "DELETE /api/v1/auth/me removes every row of the user",
+    "mutating requests with foreign Origin header should return 403 Forbidden",
+    "mutating requests with matching Origin header should succeed"
   ],
   "apps/api/test/env.validator.e2e-spec.ts": [
     "rejects missing or empty JWT_SECRET",
@@ -45,7 +47,9 @@
     "theme and tutorial-progress sync for a logged-in user",
     "one-time idempotent import of local todos at first login",
     "error state and an offline state",
-    "one 401 -> refresh -> retry success path"
+    "one 401 -> refresh -> retry success path",
+    "sandbox and XSS prevention on tutorial live edit",
+    "delete account lifecycle via UI"
   ],
   "apps/web/e2e/keyboard-nav.spec.js": [
     "keyboard navigation reaches playground tabs and tutorials"

@@ -81,9 +81,11 @@ async function main() {
   if (stage === 'S') {
     gates = stageSGates;
   } else if (stage === 'R') {
-    // Stage R will be loaded when implemented
     const { stageRGates } = await import('./gates/stage-r.js');
     gates = stageRGates;
+  } else if (stage === '7') {
+    const { stage7Gates } = await import('./gates/stage-7.js');
+    gates = stage7Gates;
   } else if (isAll) {
     gates = stageSGates; // Will chain through all stages as implemented
   } else {
