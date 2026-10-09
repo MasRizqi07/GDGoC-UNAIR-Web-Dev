@@ -773,6 +773,76 @@ function initializePage() {
     }
   });
   
+  // Live-edit runner for tutorial walkthrough pages
+  function renderSanitizedMarkup(container, rawHtml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(rawHtml, 'text/html');
+
+    // Remove script tags, iframe, object, embed, base
+    const dangerousTags = doc.querySelectorAll('script, iframe, object, embed, base');
+    dangerousTags.forEach((el) => el.remove());
+
+    // Walk elements and remove on* event handlers and javascript: urls
+    const allElements = doc.querySelectorAll('*');
+    allElements.forEach((el) => {
+      for (const attr of Array.from(el.attributes)) {
+        if (attr.name.toLowerCase().startsWith('on')) {
+          el.removeAttribute(attr.name);
+        } else if (
+          (attr.name.toLowerCase() === 'src' || attr.name.toLowerCase() === 'href') &&
+          attr.value.trim().toLowerCase().startsWith('javascript:')
+        ) {
+          el.removeAttribute(attr.name);
+        }
+      }
+    });
+
+    container.replaceChildren();
+    Array.from(doc.body.childNodes).forEach((node) => {
+      container.appendChild(document.importNode(node, true));
+    });
+  }
+
+  // Todo tutorial
+  const todoRun = document.getElementById('todo-run');
+  const todoEditor = document.getElementById('todo-editor');
+  const todoPreview = document.getElementById('todo-preview');
+  if (todoRun && todoEditor && todoPreview) {
+    todoRun.addEventListener('click', () => {
+      renderSanitizedMarkup(todoPreview, todoEditor.value);
+    });
+    todoRun.click();
+  }
+
+  // Widgets tutorial
+  const widgetsRun = document.getElementById('run');
+  const widgetsReset = document.getElementById('reset');
+  const widgetsEditor = document.getElementById('code-editor');
+  const widgetsPreview = document.getElementById('live-preview');
+  if (widgetsRun && widgetsEditor && widgetsPreview) {
+    widgetsRun.addEventListener('click', () => {
+      renderSanitizedMarkup(widgetsPreview, widgetsEditor.value);
+    });
+    if (widgetsReset) {
+      widgetsReset.addEventListener('click', () => {
+        widgetsEditor.value = '<demo-tabs></demo-tabs>\n<drag-list></drag-list>';
+        widgetsRun.click();
+      });
+    }
+    widgetsRun.click();
+  }
+
+  // Inspector tutorial
+  const inspRun = document.getElementById('insp-run');
+  const inspEditor = document.getElementById('insp-editor');
+  const inspPreview = document.getElementById('insp-preview');
+  if (inspRun && inspEditor && inspPreview) {
+    inspRun.addEventListener('click', () => {
+      renderSanitizedMarkup(inspPreview, inspEditor.value);
+    });
+    inspRun.click();
+  }
+
   initAuthUI();
   checkSession();
 }

@@ -239,5 +239,67 @@ test.describe('Auth Flow & User Isolation', () => {
     expect(meCalls).toBeGreaterThanOrEqual(2);
     expect(refreshCalls).toBe(1);
   });
+
+  test('sandbox and XSS prevention on tutorial live edit', async ({ page }) => {
+    const userEmail = `sec-${randomId()}@test.com`;
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('button', { name: 'Need an account? Register' }).click();
+    await page.locator('#auth-email').fill(userEmail);
+    await page.locator('#auth-password').fill('password123');
+    await page.getByRole('button', { name: 'Register' }).click();
+    await expect(page.locator('#auth-modal')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+
+    // Verify refresh cookie is httpOnly (not readable by JS in document.cookie)
+    const cookiesString = await page.evaluate(() => document.cookie);
+    expect(cookiesString).not.toContain('refresh_token');
+
+    // Navigate to tutorial page with live-edit
+    await page.goto('/tutorials/todo.html');
+    const editor = page.locator('#todo-editor');
+    const runBtn = page.locator('#todo-run');
+
+    // Submit malicious payload
+    const maliciousPayload = '<img src=x onerror="window.top.__pwned=1;document.cookie=\'pwned=1\'">';
+    await editor.fill(maliciousPayload);
+    await runBtn.click();
+
+    // Ensure window.top.__pwned is undefined and document.cookie was not modified
+    const isPwned = await page.evaluate(() => window.top.__pwned);
+    expect(isPwned).toBeUndefined();
+
+    const currentCookies = await page.evaluate(() => document.cookie);
+    expect(currentCookies).not.toContain('pwned=1');
+  });
+
+  test('delete account lifecycle via UI', async ({ page }) => {
+    const userEmail = `delui-${randomId()}@test.com`;
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('button', { name: 'Need an account? Register' }).click();
+    await page.locator('#auth-email').fill(userEmail);
+    await page.locator('#auth-password').fill('password123');
+    await page.getByRole('button', { name: 'Register' }).click();
+    await expect(page.locator('#auth-modal')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+
+    // Delete account button is now visible
+    const deleteBtn = page.locator('#delete-account-button');
+    await expect(deleteBtn).toBeVisible();
+    await deleteBtn.click();
+
+    // Confirmation modal opens
+    const deleteModal = page.locator('#delete-modal');
+    await expect(deleteModal).toBeVisible();
+
+    // Confirm deletion
+    await page.locator('#confirm-delete-button').click();
+    await expect(deleteModal).toBeHidden();
+
+    // User is logged out
+    await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
+    await expect(deleteBtn).toBeHidden();
+  });
 });
 

@@ -100,6 +100,10 @@ export const api = {
         if (e.status === 401) return null;
         throw e;
       }
+    },
+    async deleteAccount() {
+      await apiClient('/auth/me', { method: 'DELETE' });
+      document.dispatchEvent(new CustomEvent('auth:logout'));
     }
   },
   todos: {

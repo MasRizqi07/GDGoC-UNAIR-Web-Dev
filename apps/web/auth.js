@@ -33,13 +33,27 @@ export function initAuthUI() {
   
   let isLogin = true;
 
+  const deleteBtn = document.getElementById('delete-account-button');
+  const deleteModal = document.getElementById('delete-modal');
+  const closeDeleteBtn = document.getElementById('close-delete-modal');
+  const confirmDeleteBtn = document.getElementById('confirm-delete-button');
+  const cancelDeleteBtn = document.getElementById('cancel-delete-button');
+
   function updateUIState() {
     if (currentUser) {
       authLabel.textContent = 'Logout';
       authButton.setAttribute('aria-label', 'Logout');
+      if (deleteBtn) {
+        deleteBtn.hidden = false;
+        deleteBtn.style.display = 'inline-flex';
+      }
     } else {
       authLabel.textContent = 'Login';
       authButton.setAttribute('aria-label', 'Login');
+      if (deleteBtn) {
+        deleteBtn.hidden = true;
+        deleteBtn.style.display = 'none';
+      }
     }
   }
 
@@ -52,6 +66,31 @@ export function initAuthUI() {
   document.addEventListener('auth:logout', () => {
     currentUser = null;
     updateUIState();
+    if (deleteModal) deleteModal.hidden = true;
+  });
+
+  deleteBtn?.addEventListener('click', () => {
+    if (deleteModal) deleteModal.hidden = false;
+    confirmDeleteBtn?.focus();
+  });
+
+  closeDeleteBtn?.addEventListener('click', () => {
+    if (deleteModal) deleteModal.hidden = true;
+    deleteBtn?.focus();
+  });
+
+  cancelDeleteBtn?.addEventListener('click', () => {
+    if (deleteModal) deleteModal.hidden = true;
+    deleteBtn?.focus();
+  });
+
+  confirmDeleteBtn?.addEventListener('click', async () => {
+    try {
+      await api.auth.deleteAccount();
+      if (deleteModal) deleteModal.hidden = true;
+    } catch (err) {
+      console.error('Failed to delete account', err);
+    }
   });
 
   function setMode(loginMode) {

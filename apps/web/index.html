@@ -25,6 +25,9 @@
       <button class="button button-quiet" id="auth-button" type="button">
         <span aria-hidden="true">👤</span> <span id="auth-label">Login</span>
       </button>
+      <button class="button button-quiet" id="delete-account-button" type="button" style="color:var(--error);" hidden>
+        Delete account
+      </button>
       <button class="button button-primary" id="open-modal" type="button">
         <span aria-hidden="true">＋</span> Quick note
       </button>
@@ -153,10 +156,23 @@
 
     <footer class="page-footer">
       <a class="brand footer-brand" href="./" aria-label="DEEPDIVE home"><span class="brand-mark" aria-hidden="true">&lt;/&gt;</span><span>DEEP<span class="brand-light">DIVE</span></span></a>
-      <p>Made for curious clicks and better questions.</p>
+      <p>Made for curious clicks and better questions. <a href="privacy.html" style="color:inherit;text-decoration:underline;margin-left:0.5rem">Privacy Notice</a></p>
       <span class="footer-code">VANILLA JS · DOM · 2026</span>
     </footer>
   </main>
+
+  <div id="delete-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" tabindex="-1" hidden>
+    <div class="modal-panel">
+      <button id="close-delete-modal" class="icon-button close" type="button" aria-label="Close delete dialog">×</button>
+      <p class="eyebrow" style="color:var(--error)">DANGER ZONE</p>
+      <h2 id="delete-modal-title">Delete your account?</h2>
+      <p>This action is permanent and cannot be undone. All your tasks, completion progress, and preferences will be permanently wiped.</p>
+      <div class="form-actions" style="margin-top:1.5rem;display:flex;gap:0.75rem">
+        <button id="confirm-delete-button" type="button" class="button button-primary" style="background:var(--error);border-color:var(--error)">Yes, delete account</button>
+        <button id="cancel-delete-button" type="button" class="button button-quiet">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description" tabindex="-1" hidden>
     <div class="modal-panel">

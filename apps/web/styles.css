@@ -28,6 +28,10 @@ body {
   transition: background-color 220ms ease, color 220ms ease;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 button,
 input {
   font: inherit;
