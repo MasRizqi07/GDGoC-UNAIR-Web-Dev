@@ -123,7 +123,7 @@ export const standingGates = [
     id: 'standing-prisma-migrations',
     title: 'Prisma Migrate Status Clean (Dev and Test)',
     async run() {
-      const devStatus = run('npx prisma migrate status --schema=apps/api/prisma/schema.prisma');
+      const devStatus = run('npx prisma migrate status', { cwd: path.join(rootDir, 'apps/api') });
       return { pass: true, output: devStatus };
     },
   },

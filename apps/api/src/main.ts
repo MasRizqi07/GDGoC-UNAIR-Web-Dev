@@ -4,6 +4,13 @@ import helmet from 'helmet';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
 import cookieParser from 'cookie-parser';
 import express from 'express';
+import fs from 'node:fs';
+
+if (fs.existsSync('.env')) {
+  process.loadEnvFile('.env');
+} else if (fs.existsSync('apps/api/.env')) {
+  process.loadEnvFile('apps/api/.env');
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

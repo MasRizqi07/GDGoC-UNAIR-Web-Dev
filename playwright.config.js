@@ -1,4 +1,11 @@
 const { defineConfig, devices } = require('@playwright/test');
+const fs = require('node:fs');
+
+if (fs.existsSync('apps/api/.env')) {
+  process.loadEnvFile('apps/api/.env');
+} else if (fs.existsSync('.env')) {
+  process.loadEnvFile('.env');
+}
 
 module.exports = defineConfig({
   testDir: './apps/web/e2e',
@@ -21,6 +28,7 @@ module.exports = defineConfig({
     reuseExistingServer: false,
     timeout: 120_000,
     env: {
+      ...process.env,
       DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgresql://dev:devpassword@127.0.0.1:5432/gdgoc_test?schema=public'
     }
   },
