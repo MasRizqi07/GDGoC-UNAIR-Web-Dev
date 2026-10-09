@@ -14,6 +14,7 @@ import { ProgressModule } from './progress/progress.module.js';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { assertValidEnv } from './common/env.validator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,9 +50,6 @@ const __dirname = dirname(__filename);
 })
 export class AppModule {
   constructor() {
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret || jwtSecret.length < 32 || jwtSecret.includes('generate-a-strong-secret')) {
-      throw new Error('Invalid JWT_SECRET: must be at least 32 characters long and not a placeholder');
-    }
+    assertValidEnv();
   }
 }
