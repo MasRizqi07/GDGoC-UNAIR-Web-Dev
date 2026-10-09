@@ -5,7 +5,8 @@ const pages = [
   { name: 'Home', path: '/' },
   { name: 'Widgets Tutorial', path: '/tutorials/widgets.html' },
   { name: 'Todo Tutorial', path: '/tutorials/todo.html' },
-  { name: 'Inspector Tutorial', path: '/tutorials/inspector.html' }
+  { name: 'Inspector Tutorial', path: '/tutorials/inspector.html' },
+  { name: 'Privacy Notice', path: '/privacy.html' }
 ];
 
 for (const { name, path } of pages) {

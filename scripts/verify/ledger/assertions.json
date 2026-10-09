@@ -8,5 +8,7 @@
   "apps/web/e2e/auth.spec.js": 45,
   "apps/web/e2e/keyboard-nav.spec.js": 12,
   "apps/web/e2e/playground.spec.js": 41,
+  "apps/web/e2e/stage8-keyboard-walkthrough.spec.js": 30,
+  "apps/web/e2e/stage8-ui-quality.spec.js": 29,
   "scripts/assert-test-db.test.js": 0
 }

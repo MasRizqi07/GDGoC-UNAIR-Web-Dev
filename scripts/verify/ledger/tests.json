@@ -66,6 +66,20 @@
     "tutorial pages are served by the local preview server",
     "main page interactions produce no browser errors"
   ],
+  "apps/web/e2e/stage8-keyboard-walkthrough.spec.js": [
+    "Complete Tab order through shell, playground, and each tutorial",
+    "Auth form modal: focus trapping, Escape closes, focus returns to trigger",
+    "Delete-account dialog: focus trapped, Escape closes, focus returns to trigger"
+  ],
+  "apps/web/e2e/stage8-ui-quality.spec.js": [
+    "Reflow: ${name} must not have horizontal scroll at 320px width",
+    "Primary controls target size is at least 44x44 CSS px",
+    "Visible focus indicator has at least 3px outline",
+    "prefers-reduced-motion is honored",
+    "prefers-color-scheme is respected on first visit with persisted manual override",
+    "Form accessibility: associated labels, aria-describedby, aria-live errors, and focus on invalid field",
+    "Todo panel provides empty, loading, and error states (never blank)"
+  ],
   "scripts/assert-test-db.test.js": [
     "Test DB URL Validation",
     "rejects .../gdgoc",
