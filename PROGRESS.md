@@ -407,15 +407,15 @@ Audit of commits `ee25698`, `45fad98`, `d22d16c`, `5c70798`, `2646ad4`, `b2ca95f
 
 | Stage | Name | Status | Log File | SHA256 |
 |---|---|---|---|---|
-| S | Safety and incident triage | IN PROGRESS | PENDING | PENDING |
-| R | Close Phase 6R: prove Phases 4, 5, 6 on PostgreSQL | PENDING | NOT RUN | NOT RUN |
+| S | Safety and incident triage | VERIFIED | evidence/S-2026-10-09T15-11-39-166Z.log | e7c06df095b03e3eeac6166a693c8f468e29d2e4fe506b087ddef2a1f0d18883 |
+| R | Close Phase 6R: prove Phases 4, 5, 6 on PostgreSQL | IN PROGRESS | PENDING | PENDING |
 | 7 | Security hardening | PENDING | NOT RUN | NOT RUN |
 | 8 | Quality, UI/UX, performance, accessibility | PENDING | NOT RUN | NOT RUN |
 | 9 | Deploy-readiness | PENDING | NOT RUN | NOT RUN |
 | 10 | Fresh-clone drill and release readiness | PENDING | NOT RUN | NOT RUN |
 
-**Current HEAD:** In progress Stage S
-**Last Verification:** Stage S gates executing.
+**Current HEAD:** `82dbe95` (checkpoint/stage-s)
+**Last Verification:** Stage S PASS (18/18 gates passed)
 
 ---
 
