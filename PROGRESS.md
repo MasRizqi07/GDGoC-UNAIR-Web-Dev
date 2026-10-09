@@ -326,3 +326,43 @@ px prisma migrate dev --name init).
 - **Todos:** `POST /api/v1/todos`, `GET /api/v1/todos`, `GET /api/v1/todos/:id`, `PUT /api/v1/todos/:id`, `PUT /api/v1/todos/reorder`, `DELETE /api/v1/todos/:id`
 - **Preferences:** `GET /api/v1/preferences`, `PUT /api/v1/preferences`
 - **Progress:** `GET /api/v1/progress`, `GET /api/v1/progress/:tutorialId`, `PUT /api/v1/progress/:tutorialId`
+
+---
+
+## CAMPAIGN STATE
+
+| Stage | Name | Status | Log File | SHA256 |
+|---|---|---|---|---|
+| S | Safety and incident triage | BLOCKED (H4) | NOT RUN | NOT RUN |
+| R | Close Phase 6R: prove Phases 4, 5, 6 on PostgreSQL | PENDING | NOT RUN | NOT RUN |
+| 7 | Security hardening | PENDING | NOT RUN | NOT RUN |
+| 8 | Quality, UI/UX, performance, accessibility | PENDING | NOT RUN | NOT RUN |
+| 9 | Deploy-readiness | PENDING | NOT RUN | NOT RUN |
+| 10 | Fresh-clone drill and release readiness | PENDING | NOT RUN | NOT RUN |
+
+**Current HEAD:** `a29707d` (`docs(agents): v4 rules`)
+**Last Verification:** Stage S blocked on precondition H4.
+
+---
+
+## OWNER ACTIONS
+
+1. **Nyalakan Docker Desktop**
+   Pastikan Docker daemon berjalan dengan sukses:
+   ```powershell
+   docker version
+   docker run --rm hello-world
+   ```
+2. **Blokir push di level git**
+   ```powershell
+   git remote set-url --push origin no_push
+   git remote -v
+   ```
+   (Pastikan baris `origin ... (push)` bertuliskan `no_push`)
+3. **Buat backup mirror repository di luar folder proyek**
+   ```powershell
+   git clone --mirror . "..\GDGoC-UNAIR-Web-Dev-backup-20261009.git"
+   ```
+4. **Lanjutkan Kampanye**
+   Setelah 3 langkah di atas selesai dijalankan di PowerShell owner, kirim pesan untuk melanjutkan Stage S.
+
