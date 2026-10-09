@@ -329,6 +329,21 @@ px prisma migrate dev --name init).
 
 ---
 
+## STAGE 7 — Security Hardening
+
+**Status:** VERIFIED
+
+### Evidence
+- **Security Headers & CSP:** Configured in `apps/api/src/main.ts` with frameAncestors: ['none'], scriptSrc: ['self'], COOP same-origin, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy (camera=(), microphone=(), geolocation=()), and trust proxy.
+- **Zero Inline Scripts:** Verified zero inline script tags in any web HTML file (including index.html, privacy.html, and all tutorials).
+- **Origin Check:** `OriginGuard` registered globally in `AppModule`; blocks cross-origin mutating requests with 403 Forbidden.
+- **Live-edit Sanitization:** `renderSanitizedMarkup` in `apps/web/script.js` securely strips inline event handlers and forbidden tags.
+- **Supply-Chain & Audit:** 0 high or critical vulnerabilities in runtime dependencies (`npm audit --omit=dev --audit-level=high`). Lockfile in sync (`npm ci --dry-run`). Dependabot configured in `.github/dependabot.yml` for npm, github-actions, and docker.
+- **Account Lifecycle & Privacy:** Privacy notice page deployed at `apps/web/privacy.html` disclosing all data fields collected and owner contact placeholder. Self-service deletion UI with confirmation modal tested end-to-end.
+- **Verification Log:** `evidence/7-2026-10-09T15-32-54-382Z.log` (SHA256: `e35ee38da4fa0bc6e673195c0b5787444aa8d229d29d90a121c3847f3662a8c2`).
+
+---
+
 ## DEPENDENCY LEDGER
 
 ### Root (`package.json`)
@@ -409,13 +424,13 @@ Audit of commits `ee25698`, `45fad98`, `d22d16c`, `5c70798`, `2646ad4`, `b2ca95f
 |---|---|---|---|---|
 | S | Safety and incident triage | VERIFIED | evidence/S-2026-10-09T15-11-39-166Z.log | e7c06df095b03e3eeac6166a693c8f468e29d2e4fe506b087ddef2a1f0d18883 |
 | R | Close Phase 6R: prove Phases 4, 5, 6 on PostgreSQL | VERIFIED | evidence/R-2026-10-09T15-15-38-384Z.log | 3368db5f679b4e31a529a9b9cacb9de0a54be8db1bef7706a04c22d4f16ab9e2 |
-| 7 | Security hardening | IN PROGRESS | PENDING | PENDING |
-| 8 | Quality, UI/UX, performance, accessibility | PENDING | NOT RUN | NOT RUN |
+| 7 | Security hardening | VERIFIED | evidence/7-2026-10-09T15-32-54-382Z.log | e35ee38da4fa0bc6e673195c0b5787444aa8d229d29d90a121c3847f3662a8c2 |
+| 8 | Quality, UI/UX, performance, accessibility | IN PROGRESS | PENDING | PENDING |
 | 9 | Deploy-readiness | PENDING | NOT RUN | NOT RUN |
 | 10 | Fresh-clone drill and release readiness | PENDING | NOT RUN | NOT RUN |
 
-**Current HEAD:** `3dbdc5a` (checkpoint/stage-r)
-**Last Verification:** Stage R PASS (19/19 gates passed)
+**Current HEAD:** `d4c7373` (checkpoint/stage-7)
+**Last Verification:** Stage 7 PASS (21/21 gates passed)
 
 ---
 
