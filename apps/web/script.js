@@ -674,19 +674,31 @@ function initializePage() {
   }
 
   setTheme(localStorage.getItem('ui-dark') === '1', true);
-  themeButton?.addEventListener('click', () => setTheme(!body.classList.contains('dark')));
+  let userManuallyToggledTheme = false;
+
+  themeButton?.addEventListener('click', () => {
+    userManuallyToggledTheme = true;
+    setTheme(!body.classList.contains('dark'));
+  });
   
   document.addEventListener('auth:login', async () => {
     try {
       const prefs = await api.preferences.get();
-      if (prefs && prefs.theme) {
-        setTheme(prefs.theme === '1', true);
-      } else {
-        await api.preferences.updateTheme(body.classList.contains('dark') ? '1' : '0');
+      if (prefs && (prefs.theme === '1' || prefs.theme === 'dark')) {
+        setTheme(true, true);
+        userManuallyToggledTheme = false;
+      } else if (prefs && (prefs.theme === '0' || prefs.theme === 'light')) {
+        if (!userManuallyToggledTheme) {
+          setTheme(false, true);
+        }
       }
     } catch (err) {
       console.error('Failed to get preferences', err);
     }
+  });
+
+  document.addEventListener('auth:logout', () => {
+    userManuallyToggledTheme = false;
   });
 
   const modal = document.getElementById('modal');

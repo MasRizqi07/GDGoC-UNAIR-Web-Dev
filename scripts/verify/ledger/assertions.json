@@ -5,7 +5,7 @@
   "apps/api/test/global-setup.ts": 0,
   "apps/api/test/todos.e2e-spec.ts": 18,
   "apps/web/e2e/a11y.spec.js": 2,
-  "apps/web/e2e/auth.spec.js": 27,
+  "apps/web/e2e/auth.spec.js": 33,
   "apps/web/e2e/keyboard-nav.spec.js": 12,
   "apps/web/e2e/playground.spec.js": 41,
   "scripts/assert-test-db.test.js": 0

@@ -29,7 +29,7 @@ module.exports = async function setupTestDB() {
   // Set DATABASE_URL so prisma commands run against the test db
   process.env.DATABASE_URL = dbUrl;
   console.log('Resetting test database...');
-  execSync('npx prisma migrate reset --force --skip-seed', { 
+  execSync('npx prisma migrate reset --force --skip-seed --skip-generate', { 
     stdio: 'inherit', 
     env: process.env,
     cwd: require('path').join(__dirname, '../apps/api')

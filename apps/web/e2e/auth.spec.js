@@ -81,6 +81,7 @@ test.describe('Auth Flow & User Isolation', () => {
 
     // 6. Logout A, Register B
     await page.getByRole('button', { name: 'Logout' }).click();
+    await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
     
     await page.getByRole('button', { name: 'Login' }).click();
     const submitText2 = await loginSubmitBtn.textContent();
@@ -118,7 +119,9 @@ test.describe('Auth Flow & User Isolation', () => {
 
     // Set theme to dark
     const themeBtn = page.locator('#theme-toggle');
+    const prefPromise = page.waitForResponse(r => r.url().includes('/preferences') && r.request().method() === 'PUT');
     await themeBtn.click(); // enable dark mode
+    await prefPromise;
     await expect(page.locator('body')).toHaveClass(/dark/);
     await expect(themeBtn).toHaveAttribute('aria-pressed', 'true');
 
@@ -130,6 +133,7 @@ test.describe('Auth Flow & User Isolation', () => {
     // Logout
     await page.goto('/');
     await page.getByRole('button', { name: 'Logout' }).click();
+    await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
     
     // Reset theme locally to light
     await themeBtn.click(); // disable dark mode
@@ -140,6 +144,8 @@ test.describe('Auth Flow & User Isolation', () => {
     await page.locator('#auth-email').fill(userEmail);
     await page.locator('#auth-password').fill('password123');
     await page.locator('#auth-submit').click();
+    await expect(page.locator('#auth-modal')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
 
     // Theme should automatically sync to dark
     await expect(page.locator('body')).toHaveClass(/dark/);
@@ -169,6 +175,8 @@ test.describe('Auth Flow & User Isolation', () => {
     await page.locator('#auth-email').fill(userEmail);
     await page.locator('#auth-password').fill('password123');
     await page.getByRole('button', { name: 'Register' }).click();
+    await expect(page.locator('#auth-modal')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
 
     // Wait for sync
     await page.waitForTimeout(1000);

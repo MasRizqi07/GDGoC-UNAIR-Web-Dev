@@ -54,21 +54,8 @@ export function initAuthUI() {
     updateUIState();
   });
 
-  authButton?.addEventListener('click', async () => {
-    if (currentUser) {
-      await api.auth.logout();
-    } else {
-      authModal.hidden = false;
-      document.getElementById('auth-email').focus();
-    }
-  });
-
-  closeAuthBtn?.addEventListener('click', () => {
-    authModal.hidden = true;
-  });
-
-  authToggleMode?.addEventListener('click', () => {
-    isLogin = !isLogin;
+  function setMode(loginMode) {
+    isLogin = loginMode;
     if (isLogin) {
       authEyebrow.textContent = 'WELCOME BACK';
       authTitle.innerHTML = 'Sign in to<br/><span>sync progress.</span>';
@@ -81,6 +68,24 @@ export function initAuthUI() {
       authToggleMode.textContent = 'Already have an account? Login';
     }
     globalError.textContent = '';
+  }
+
+  authButton?.addEventListener('click', async () => {
+    if (currentUser) {
+      await api.auth.logout();
+    } else {
+      setMode(true);
+      authModal.hidden = false;
+      document.getElementById('auth-email').focus();
+    }
+  });
+
+  closeAuthBtn?.addEventListener('click', () => {
+    authModal.hidden = true;
+  });
+
+  authToggleMode?.addEventListener('click', () => {
+    setMode(!isLogin);
   });
 
   authForm?.addEventListener('submit', async (e) => {
