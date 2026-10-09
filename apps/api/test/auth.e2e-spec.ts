@@ -249,5 +249,22 @@ describe('AuthController (e2e)', () => {
       expect(await prisma.todo.count({ where: { userId } })).toBe(0);
       expect(await prisma.refreshToken.count({ where: { userId } })).toBe(0);
     });
+
+    it('mutating requests with foreign Origin header should return 403 Forbidden', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .set('origin', 'http://malicious-attacker.com')
+        .send({ email: 'attacker@example.com', password: 'password123' });
+      expect(res.status).toBe(403);
+    });
+
+    it('mutating requests with matching Origin header should succeed', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/auth/register')
+        .set('x-forwarded-for', '1.2.3.99')
+        .set('origin', 'http://127.0.0.1:3000')
+        .send({ email: 'origin-ok@example.com', password: 'password123' });
+      expect(res.status).toBe(201);
+    });
   });
 });

@@ -19,6 +19,8 @@ import { assertValidEnv } from './common/env.validator.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+import { OriginGuard } from './common/guards/origin.guard.js';
+
 @Module({
   imports: [
     ThrottlerModule.forRoot([{
@@ -38,6 +40,10 @@ const __dirname = dirname(__filename);
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_GUARD,
+      useClass: OriginGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
