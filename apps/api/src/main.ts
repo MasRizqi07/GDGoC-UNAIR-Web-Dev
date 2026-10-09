@@ -3,6 +3,7 @@ import { AppModule } from './app.module.js';
 import helmet from 'helmet';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import express from 'express';
 import fs from 'node:fs';
 
@@ -47,6 +48,8 @@ async function bootstrap() {
       xContentTypeOptions: true,
     }),
   );
+
+  app.use(compression());
 
   // Permissions-Policy header
   app.use((_req: express.Request, res: express.Response, next: express.NextFunction) => {

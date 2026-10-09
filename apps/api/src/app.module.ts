@@ -29,6 +29,15 @@ import { OriginGuard } from './common/guards/origin.guard.js';
     }]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'web', 'dist'),
+      serveStaticOptions: {
+        setHeaders: (res: any, filePath: string) => {
+          if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+          } else if (filePath.includes('/assets/') || filePath.includes('\\assets\\') || /\.[a-f0-9]{8,}\./i.test(filePath)) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          }
+        },
+      },
     }),
     PrismaModule,
     UsersModule,

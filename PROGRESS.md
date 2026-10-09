@@ -364,6 +364,7 @@ px prisma migrate dev --name init).
 - `@nestjs/throttler`: Rate limiting guard against brute force and abuse
 - `@prisma/client`: Auto-generated type-safe PostgreSQL database client
 - `bcrypt`: Password hashing with salt for credential security
+- `compression`: HTTP response compression middleware enabling gzip and deflate
 - `cookie-parser`: Middleware to read and set authentication cookies
 - `helmet`: Security HTTP headers middleware for API responses
 - `reflect-metadata`: TypeScript metadata reflection polyfill required by NestJS
@@ -373,6 +374,7 @@ px prisma migrate dev --name init).
 - `@nestjs/schematics`: NestJS architectural code generation utilities
 - `@nestjs/testing`: Utilities for testing NestJS controllers and services
 - `@types/bcrypt`: TypeScript type definitions for bcrypt
+- `@types/compression`: TypeScript type definitions for compression middleware
 - `@types/cookie-parser`: TypeScript type definitions for cookie-parser
 - `@types/express`: TypeScript type definitions for Express
 - `@types/node`: TypeScript type definitions for Node.js
