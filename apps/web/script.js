@@ -673,7 +673,22 @@ function initializePage() {
     }
   }
 
-  setTheme(localStorage.getItem('ui-dark') === '1', true);
+  const storedTheme = localStorage.getItem('ui-dark');
+  if (storedTheme !== null) {
+    setTheme(storedTheme === '1', true);
+  } else {
+    const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(Boolean(prefersDark), true);
+  }
+
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', (e) => {
+      if (localStorage.getItem('ui-dark') === null) {
+        setTheme(e.matches, true);
+      }
+    });
+  }
+
   let userManuallyToggledTheme = false;
 
   themeButton?.addEventListener('click', () => {

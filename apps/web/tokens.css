@@ -39,6 +39,20 @@
   --accent-text: var(--accent-text-light);
   --amber: var(--amber-light);
 
+  /* Focus Indicator (WCAG 2.2 AA >= 3:1) */
+  --focus-ring-light: #243319;
+  --focus-ring-dark: #c6f36a;
+  --focus-ring: var(--focus-ring-light);
+
+  /* Translucent Overlays & Glows */
+  --gradient-glow: rgba(198, 243, 106, 0.12);
+  --focus-ring-glow: rgba(119, 179, 75, 0.14);
+  --card-glow-shadow: rgba(67, 89, 42, 0.16);
+  --card-soft-shadow: rgba(30, 43, 33, 0.05);
+  --backdrop-overlay: rgba(10, 18, 13, 0.58);
+  --modal-shadow: rgba(0, 0, 0, 0.24);
+  --hero-glow-shadow: rgba(67, 89, 42, 0.12);
+
   /* Shadows */
   --shadow: 0 18px 48px rgba(29, 43, 33, 0.07);
   --shadow-dark: 0 18px 48px rgba(0, 0, 0, 0.4);
@@ -78,6 +92,14 @@ body.dark {
   --accent-text: var(--accent-text-dark);
   --amber: var(--amber-dark);
   --shadow: var(--shadow-dark);
+  --focus-ring: var(--focus-ring-dark);
+  --gradient-glow: rgba(198, 243, 106, 0.08);
+  --focus-ring-glow: rgba(198, 243, 106, 0.22);
+  --card-glow-shadow: rgba(0, 0, 0, 0.4);
+  --card-soft-shadow: rgba(0, 0, 0, 0.2);
+  --backdrop-overlay: rgba(0, 0, 0, 0.72);
+  --modal-shadow: rgba(0, 0, 0, 0.6);
+  --hero-glow-shadow: rgba(0, 0, 0, 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {

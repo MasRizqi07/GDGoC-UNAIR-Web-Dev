@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Explore custom web component widgets including Shadow DOM tabs and drag-and-drop lists.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Widgets Tutorial — Deep Dive UI</title>
   <link rel="stylesheet" href="../styles.css">
   <script type="module" src="../script.js" defer></script>
@@ -70,7 +73,7 @@ class DemoTabs extends HTMLElement {
     <textarea id="code-editor" style="width:100%;height:90px">&lt;demo-tabs&gt;&lt;/demo-tabs&gt;
 &lt;drag-list&gt;&lt;/drag-list&gt;</textarea>
     <div style="margin:.5rem 0"><button id="run" class="button button-primary">Run</button> <button id="reset" class="button button-quiet">Reset</button></div>
-    <div id="live-preview" style="border:1px solid rgba(0,0,0,0.06);padding:1rem;border-radius:6px;background:var(--bg)"></div>
+    <div id="live-preview" class="preview-sandbox"></div>
 
     <h2>Drag & Drop (notes)</h2>
     <p>The <code>&lt;drag-list&gt;</code> uses native <code>dragstart</code>, <code>dragover</code>, and <code>drop</code> events — on drop it reorders child nodes by moving the dragged node before/after the drop target.</p>

@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Tutorial on building a custom Todo web component with local persistence and state synchronization.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Todo Tutorial - Deep Dive UI</title>
   <link rel="stylesheet" href="../styles.css">
   <script type="module" src="../script.js" defer></script>
@@ -53,7 +56,7 @@ renderList(){
     <label for="todo-editor">Component markup</label>
     <textarea id="todo-editor" title="editor" placeholder="&lt;todo-app&gt;&lt;/todo-app&gt;" style="width:100%;height:90px">&lt;todo-app&gt;&lt;/todo-app&gt;</textarea>
     <div style="margin:.5rem 0"><button id="todo-run" class="button button-primary">Run</button></div>
-    <div id="todo-preview" style="border:1px solid rgba(0,0,0,0.06);padding:1rem;border-radius:6px"></div>
+    <div id="todo-preview" class="preview-sandbox"></div>
 
     <tutorial-progress tutorial-id="todo"></tutorial-progress>
     <p style="margin-top: 2rem"><a href="../index.html" class="resource-link">Back to demo <span aria-hidden="true">?</span></a></p>

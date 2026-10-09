@@ -22,7 +22,7 @@ body {
   margin: 0;
   overflow-x: hidden;
   background:
-    radial-gradient(ellipse at 84% 4%, rgba(198, 243, 106, 0.12), transparent 28rem),
+    radial-gradient(ellipse at 84% 4%, var(--gradient-glow), transparent 28rem),
     var(--bg);
   color: var(--text);
   transition: background-color 220ms ease, color 220ms ease;
@@ -50,7 +50,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 [role="tabpanel"]:focus-visible {
-  outline: 3px solid var(--accent-strong);
+  outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
 }
 
@@ -129,7 +129,8 @@ kbd {
 
 .button {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
@@ -217,7 +218,7 @@ kbd {
 }
 
 .status-dot {
-  box-shadow: 0 0 0 4px rgba(119, 179, 75, 0.14);
+  box-shadow: 0 0 0 4px var(--focus-ring-glow);
 }
 
 h1,
@@ -308,7 +309,7 @@ p {
   border: 1px solid color-mix(in srgb, var(--accent) 65%, var(--line));
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 12px color-mix(in srgb, var(--accent) 16%, transparent), 0 22px 60px rgba(67, 89, 42, 0.16);
+  box-shadow: 0 0 0 12px color-mix(in srgb, var(--accent) 16%, transparent), 0 22px 60px var(--card-glow-shadow);
   color: var(--accent-ink);
   font: 800 0.9rem/1 monospace;
   letter-spacing: -0.06em;
@@ -424,7 +425,7 @@ p {
 .tab-button.is-active {
   border-color: var(--line);
   background: var(--surface);
-  box-shadow: 0 2px 8px rgba(30, 43, 33, 0.05);
+  box-shadow: 0 2px 8px var(--card-soft-shadow);
   color: var(--text);
 }
 
@@ -677,7 +678,7 @@ p {
   display: grid;
   place-items: center;
   padding: 1rem;
-  background: rgba(10, 18, 13, 0.58);
+  background: var(--backdrop-overlay);
   backdrop-filter: blur(8px);
 }
 
@@ -692,7 +693,7 @@ p {
   border: 1px solid var(--line);
   border-radius: 22px;
   background: var(--surface);
-  box-shadow: 0 28px 100px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 28px 100px var(--modal-shadow);
   animation: modal-in 220ms both ease-out;
 }
 
@@ -780,7 +781,7 @@ p {
 
 @keyframes core-pulse {
   50% {
-    box-shadow: 0 0 0 18px color-mix(in srgb, var(--accent) 11%, transparent), 0 22px 60px rgba(67, 89, 42, 0.12);
+    box-shadow: 0 0 0 18px color-mix(in srgb, var(--accent) 11%, transparent), 0 22px 60px var(--hero-glow-shadow);
   }
 }
 
@@ -830,7 +831,7 @@ p {
   }
 
   .button {
-    min-height: 38px;
+    min-height: 44px;
     padding-inline: 0.65rem;
     font-size: 0.69rem;
   }
@@ -1001,3 +1002,10 @@ p {
 }
 
 @media (max-width: 400px) { .header-actions { flex-wrap: wrap; justify-content: flex-end; } }
+
+.preview-sandbox {
+  border: 1px solid var(--line);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}

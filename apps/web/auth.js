@@ -69,20 +69,53 @@ export function initAuthUI() {
     if (deleteModal) deleteModal.hidden = true;
   });
 
+  let authReturnFocus = null;
+  let deleteReturnFocus = null;
+
+  function trapFocus(container, onEscape) {
+    container.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onEscape?.();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusable = [...container.querySelectorAll('button:not([disabled]), input:not([disabled]), a:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+        .filter((el) => !el.hidden && el.style.display !== 'none');
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === container)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
+  function closeDelete() {
+    if (deleteModal) deleteModal.hidden = true;
+    deleteReturnFocus?.focus();
+  }
+
+  function closeAuth() {
+    if (authModal) authModal.hidden = true;
+    authReturnFocus?.focus();
+  }
+
+  if (authModal) trapFocus(authModal, closeAuth);
+  if (deleteModal) trapFocus(deleteModal, closeDelete);
+
   deleteBtn?.addEventListener('click', () => {
+    deleteReturnFocus = document.activeElement;
     if (deleteModal) deleteModal.hidden = false;
     confirmDeleteBtn?.focus();
   });
 
-  closeDeleteBtn?.addEventListener('click', () => {
-    if (deleteModal) deleteModal.hidden = true;
-    deleteBtn?.focus();
-  });
-
-  cancelDeleteBtn?.addEventListener('click', () => {
-    if (deleteModal) deleteModal.hidden = true;
-    deleteBtn?.focus();
-  });
+  closeDeleteBtn?.addEventListener('click', closeDelete);
+  cancelDeleteBtn?.addEventListener('click', closeDelete);
 
   confirmDeleteBtn?.addEventListener('click', async () => {
     try {
@@ -107,32 +140,62 @@ export function initAuthUI() {
       authToggleMode.textContent = 'Already have an account? Login';
     }
     globalError.textContent = '';
+    const emailErr = document.getElementById('auth-email-error');
+    if (emailErr) emailErr.textContent = '';
+    const pwdErr = document.getElementById('auth-password-error');
+    if (pwdErr) pwdErr.textContent = '';
   }
 
   authButton?.addEventListener('click', async () => {
     if (currentUser) {
       await api.auth.logout();
     } else {
+      authReturnFocus = document.activeElement;
       setMode(true);
       authModal.hidden = false;
       document.getElementById('auth-email').focus();
     }
   });
 
-  closeAuthBtn?.addEventListener('click', () => {
-    authModal.hidden = true;
-  });
+  closeAuthBtn?.addEventListener('click', closeAuth);
 
   authToggleMode?.addEventListener('click', () => {
     setMode(!isLogin);
   });
 
+  const emailInput = document.getElementById('auth-email');
+  const passwordInput = document.getElementById('auth-password');
+  const emailErr = document.getElementById('auth-email-error');
+  const pwdErr = document.getElementById('auth-password-error');
+
+  emailInput?.addEventListener('input', () => {
+    if (emailErr) emailErr.textContent = '';
+    globalError.textContent = '';
+  });
+  passwordInput?.addEventListener('input', () => {
+    if (pwdErr) pwdErr.textContent = '';
+    globalError.textContent = '';
+  });
+
   authForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
     
     globalError.textContent = '';
+    if (emailErr) emailErr.textContent = '';
+    if (pwdErr) pwdErr.textContent = '';
+
+    if (!email) {
+      if (emailErr) emailErr.textContent = 'Email address is required.';
+      emailInput.focus();
+      return;
+    }
+    if (password.length < 8) {
+      if (pwdErr) pwdErr.textContent = 'Password must be at least 8 characters.';
+      passwordInput.focus();
+      return;
+    }
     
     const prevText = authSubmit.textContent;
     authSubmit.textContent = 'Working...';
@@ -150,6 +213,13 @@ export function initAuthUI() {
       document.dispatchEvent(new CustomEvent('auth:login', { detail: { user } }));
     } catch (err) {
       globalError.textContent = err.message;
+      if (err.message?.toLowerCase().includes('password')) {
+        if (pwdErr) pwdErr.textContent = err.message;
+        passwordInput.focus();
+      } else {
+        if (emailErr) emailErr.textContent = err.message;
+        emailInput.focus();
+      }
     } finally {
       authSubmit.textContent = prevText;
       authSubmit.disabled = false;

@@ -11,6 +11,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        privacy: resolve(__dirname, 'privacy.html'),
         widgets: resolve(__dirname, 'tutorials/widgets.html'),
         todo: resolve(__dirname, 'tutorials/todo.html'),
         inspector: resolve(__dirname, 'tutorials/inspector.html'),

@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Tutorial on DOM inspection, event capturing vs bubbling, and element introspection.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Inspector Tutorial - Deep Dive UI</title>
   <link rel="stylesheet" href="../styles.css">
   <script type="module" src="../script.js" defer></script>
@@ -49,7 +52,7 @@ function handler(e){
     <label for="insp-editor">Markup to insert</label>
     <textarea id="insp-editor" title="inspector editor" placeholder="&lt;button&gt;A button&lt;/button&gt;" style="width:100%;height:90px">&lt;button&gt;A button&lt;/button&gt; &lt;div&gt;Some text&lt;/div&gt;</textarea>
     <div style="margin:.5rem 0"><button id="insp-run" class="button button-primary">Run</button></div>
-    <div id="insp-preview" style="border:1px solid rgba(0,0,0,0.06);padding:1rem;border-radius:6px"></div>
+    <div id="insp-preview" class="preview-sandbox"></div>
 
     <dom-inspector></dom-inspector>
     <tutorial-progress tutorial-id="inspector"></tutorial-progress>
