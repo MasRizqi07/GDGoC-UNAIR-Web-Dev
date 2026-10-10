@@ -25,7 +25,7 @@ import { OriginGuard } from './common/guards/origin.guard.js';
   imports: [
     ThrottlerModule.forRoot([{
       ttl: 60000,
-      limit: 100,
+      limit: Number(process.env.THROTTLE_LIMIT || 100),
     }]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'web', 'dist'),

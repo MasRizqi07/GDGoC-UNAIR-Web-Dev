@@ -30,7 +30,8 @@ module.exports = defineConfig({
     env: {
       ...process.env,
       DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgresql://dev:devpassword@127.0.0.1:5432/gdgoc_test?schema=public',
-      AUTH_LOGIN_THROTTLE_LIMIT: '100',
+      AUTH_LOGIN_THROTTLE_LIMIT: '1000',
+      THROTTLE_LIMIT: '1000',
     }
   },
 });
