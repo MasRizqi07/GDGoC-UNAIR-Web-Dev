@@ -1,17 +1,36 @@
 <!doctype html>
 <html lang="en">
-  <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Todo Tutorial — Deep Dive UI</title>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Tutorial on building a custom Todo web component with local persistence and state synchronization.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Todo Tutorial - Deep Dive UI</title>
   <link rel="stylesheet" href="../styles.css">
-  <script type="module" src="../script.js"></script>
+  <script type="module" src="../script.js" defer></script>
 </head>
 <body>
-  <main style="max-width:900px;margin:2rem auto;padding:1rem">
-    <h1>Todo — Guided Tutorial</h1>
-    <p>This walkthrough explains <code>&lt;todo-app&gt;</code> — local state + persistence with <code>localStorage</code>.</p>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="site-header">
+    <a class="brand" href="../index.html" aria-label="DEEPDIVE home">
+      <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+      <span>DEEP<span class="brand-light">DIVE</span></span>
+    </a>
+    <div class="header-controls">
+      <button class="button button-quiet" id="theme-toggle" type="button" aria-pressed="false">
+        <span class="button-icon" aria-hidden="true">?</span>
+        <span class="theme-label">Dark mode</span>
+      </button>
+    </div>
+  </header>
 
-    <h3>Annotated code — lifecycle</h3>
+  <main id="main-content" class="page-shell" style="max-width:900px;margin:2rem auto;padding:1rem">
+    <h1>Todo - Guided Tutorial</h1>
+    <p>This walkthrough explains <code>&lt;todo-app&gt;</code> - local state + persistence with <code>localStorage</code>.</p>
+
+    <h2>Annotated code - lifecycle</h2>
     <pre><code>// inside TodoApp (simplified)
 connectedCallback(){
   // 1. render base markup in shadow root (form + list)
@@ -24,31 +43,29 @@ renderList(){
 }
 </code></pre>
 
-    <h4>Walkthrough</h4>
+    <h3>Walkthrough</h3>
     <ol>
-      <li><strong>Render</strong> — building markup inside a shadow root isolates styles. Use minimal markup so the component can be reused.</li>
-      <li><strong>Persist</strong> — use a versioned key (e.g., <code>demo-todos-v1</code>) so future upgrades can migrate safely.</li>
-      <li><strong>Re-render</strong> — always re-render from the source-of-truth (localStorage) after mutations to avoid UI drift.</li>
-      <li><strong>Remove</strong> — remove handlers should update storage then re-render rather than mutating DOM only.</li>
+      <li><strong>Render</strong> - building markup inside a shadow root isolates styles. Use minimal markup so the component can be reused.</li>
+      <li><strong>Persist</strong> - use a versioned key (e.g., <code>demo-todos-v1</code>) so future upgrades can migrate safely.</li>
+      <li><strong>Re-render</strong> - always re-render from the source-of-truth (localStorage) after mutations to avoid UI drift.</li>
+      <li><strong>Remove</strong> - remove handlers should update storage then re-render rather than mutating DOM only.</li>
     </ol>
 
-    <h3>Live-edit: change markup or initial todos</h3>
+    <h2>Live-edit: change markup or initial todos</h2>
     <p>Edit the snippet below and press <strong>Run</strong> to insert the component with different markup or initial state.</p>
     <label for="todo-editor">Component markup</label>
     <textarea id="todo-editor" title="editor" placeholder="&lt;todo-app&gt;&lt;/todo-app&gt;" style="width:100%;height:90px">&lt;todo-app&gt;&lt;/todo-app&gt;</textarea>
-    <div style="margin:.5rem 0"><button id="todo-run">Run</button></div>
-    <div id="todo-preview" style="border:1px solid rgba(0,0,0,0.06);padding:1rem;border-radius:6px"></div>
+    <div style="margin:.5rem 0"><button id="todo-run" class="button button-primary">Run</button></div>
+    <div id="todo-preview" class="preview-sandbox"></div>
 
-    <p><a href="../index.html">Back to demo</a></p>
+    <tutorial-progress tutorial-id="todo"></tutorial-progress>
+    <p style="margin-top: 2rem"><a href="../index.html" class="resource-link">Back to demo <span aria-hidden="true">?</span></a></p>
   </main>
 
-  <script>
-    document.getElementById('todo-run').addEventListener('click',()=>{
-      const code = document.getElementById('todo-editor').value;
-      document.getElementById('todo-preview').innerHTML = code;
-    });
-    // render initial
-    document.getElementById('todo-run').click();
-  </script>
+  <footer class="page-footer">
+    <a class="brand footer-brand" href="../index.html" aria-label="DEEPDIVE home"><span class="brand-mark" aria-hidden="true">&lt;/&gt;</span><span>DEEP<span class="brand-light">DIVE</span></span></a>
+    <p>Made for curious clicks and better questions.</p>
+    <span class="footer-code">VANILLA JS  DOM  2026</span>
+  </footer>
 </body>
 </html>

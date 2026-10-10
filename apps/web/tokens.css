@@ -1,0 +1,117 @@
+:root {
+  /* Colors - Light Theme */
+  --bg-light: #f5f5f0;
+  --surface-light: #fffefa;
+  --surface-muted-light: #eeefe8;
+  --text-light: #19221d;
+  --muted-light: #5f6a62;
+  --line-light: #dfe3d9;
+  --accent-light: #c6f36a;
+  --accent-strong-light: #a6d94c;
+  --accent-ink-light: #243319;
+  --accent-text-light: #536f32;
+  --amber-light: #f1bd68;
+  
+  /* Colors - Dark Theme */
+  --bg-dark: #141a16;
+  --surface-dark: #1c241f;
+  --surface-muted-dark: #242e28;
+  --text-dark: #eff4e9;
+  --muted-dark: #a5b1a4;
+  --line-dark: #354139;
+  --accent-dark: #c6f36a;
+  --accent-strong-dark: #8ebc49;
+  --accent-ink-dark: #f8fced;
+  --accent-text-dark: #8ebc49;
+  --amber-dark: #f1bd68;
+
+  /* Current Theme Default (Light) */
+  color-scheme: light;
+  --bg: var(--bg-light);
+  --surface: var(--surface-light);
+  --surface-muted: var(--surface-muted-light);
+  --text: var(--text-light);
+  --muted: var(--muted-light);
+  --line: var(--line-light);
+  --accent: var(--accent-light);
+  --accent-strong: var(--accent-strong-light);
+  --accent-ink: var(--accent-ink-light);
+  --accent-text: var(--accent-text-light);
+  --amber: var(--amber-light);
+
+  /* Focus Indicator (WCAG 2.2 AA >= 3:1) */
+  --focus-ring-light: #243319;
+  --focus-ring-dark: #c6f36a;
+  --focus-ring: var(--focus-ring-light);
+
+  /* Translucent Overlays & Glows */
+  --gradient-glow: rgba(198, 243, 106, 0.12);
+  --focus-ring-glow: rgba(119, 179, 75, 0.14);
+  --card-glow-shadow: rgba(67, 89, 42, 0.16);
+  --card-soft-shadow: rgba(30, 43, 33, 0.05);
+  --backdrop-overlay: rgba(10, 18, 13, 0.58);
+  --modal-shadow: rgba(0, 0, 0, 0.24);
+  --hero-glow-shadow: rgba(67, 89, 42, 0.12);
+
+  /* Shadows */
+  --shadow: 0 18px 48px rgba(29, 43, 33, 0.07);
+  --shadow-dark: 0 18px 48px rgba(0, 0, 0, 0.4);
+
+  /* Radius */
+  --radius: 18px;
+  --radius-sm: 8px;
+  --radius-pill: 99px;
+
+  /* Typography */
+  --font-base: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+  --space-xl: 4rem;
+
+  /* Motion */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+body.dark {
+  color-scheme: dark;
+  --bg: var(--bg-dark);
+  --surface: var(--surface-dark);
+  --surface-muted: var(--surface-muted-dark);
+  --text: var(--text-dark);
+  --muted: var(--muted-dark);
+  --line: var(--line-dark);
+  --accent: var(--accent-dark);
+  --accent-strong: var(--accent-strong-dark);
+  --accent-ink: var(--accent-ink-dark);
+  --accent-text: var(--accent-text-dark);
+  --amber: var(--amber-dark);
+  --shadow: var(--shadow-dark);
+  --focus-ring: var(--focus-ring-dark);
+  --gradient-glow: rgba(198, 243, 106, 0.08);
+  --focus-ring-glow: rgba(198, 243, 106, 0.22);
+  --card-glow-shadow: rgba(0, 0, 0, 0.4);
+  --card-soft-shadow: rgba(0, 0, 0, 0.2);
+  --backdrop-overlay: rgba(0, 0, 0, 0.72);
+  --modal-shadow: rgba(0, 0, 0, 0.6);
+  --hero-glow-shadow: rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-normal: 0ms;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

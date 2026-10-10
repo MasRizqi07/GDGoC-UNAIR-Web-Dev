@@ -1,0 +1,94 @@
+{
+  "apps/api/test/app.e2e-spec.ts": [
+    "/api/v1/health (GET)"
+  ],
+  "apps/api/test/auth.e2e-spec.ts": [
+    "POST /register should register a new user",
+    "should capture server logs during register and login and not leak secrets",
+    "POST /register should return generic response for duplicate email including casing",
+    "POST /register and login with mixed case",
+    "POST /login should login and set cookies",
+    "POST /login should ratelimit 6th rapid login",
+    "POST /refresh should rotate token and detect reuse",
+    "POST /logout should revoke the family",
+    "GET /me should return 204 without token",
+    "GET /me should return 204 with bad token",
+    "DELETE /api/v1/auth/me removes every row of the user",
+    "mutating requests with foreign Origin header should return 403 Forbidden",
+    "mutating requests with matching Origin header should succeed"
+  ],
+  "apps/api/test/env.validator.e2e-spec.ts": [
+    "rejects missing or empty JWT_SECRET",
+    "rejects JWT_SECRET shorter than 32 characters",
+    "accepts valid strong JWT_SECRET in development",
+    "passes with all valid production variables",
+    "rejects production without FRONTEND_URL",
+    "rejects production when COOKIE_SECURE is not true",
+    "throws Error when validation fails",
+    "does not throw when validation passes"
+  ],
+  "apps/api/test/global-setup.ts": [],
+  "apps/api/test/todos.e2e-spec.ts": [
+    "GET /api/v1/todos/:id should return 404 if User B tries to read User A todo",
+    "PUT /api/v1/todos/:id should return 404 if User B tries to update User A todo",
+    "DELETE /api/v1/todos/:id should return 404 if User B tries to delete User A todo",
+    "PUT /api/v1/todos/reorder should return 404 if User B tries to reorder User A todo",
+    "GET /api/v1/todos should return 401 without token",
+    "GET /api/v1/todos should return todos without secrets",
+    "GET /api/v1/todos should return 401 with bad token",
+    "PUT /api/v1/todos/reorder should update positions of todos"
+  ],
+  "apps/web/e2e/a11y.spec.js": [
+    "should not have any automatically detectable serious/critical accessibility issues in light mode",
+    "should not have any automatically detectable serious/critical accessibility issues in dark mode"
+  ],
+  "apps/web/e2e/auth.spec.js": [
+    "register -> add todo -> reload -> persists -> logout -> login -> present -> second user isolation",
+    "theme and tutorial-progress sync for a logged-in user",
+    "one-time idempotent import of local todos at first login",
+    "error state and an offline state",
+    "one 401 -> refresh -> retry success path",
+    "sandbox and XSS prevention on tutorial live edit",
+    "delete account lifecycle via UI"
+  ],
+  "apps/web/e2e/keyboard-nav.spec.js": [
+    "keyboard navigation reaches playground tabs and tutorials"
+  ],
+  "apps/web/e2e/playground.spec.js": [
+    "main and nested tabs keep selection, panel visibility, and keyboard navigation in sync",
+    "theme selection persists after reload",
+    "modal closes from its controls, backdrop, and Escape while restoring focus",
+    "todo app ignores blank tasks and persists additions and removals",
+    "drag list reorders items without duplicating or losing them",
+    "inspector observes a page click without activating it and can be stopped",
+    "G highlights the header outside text entry and is ignored in Shadow DOM inputs",
+    "layout fits a narrow viewport and honors reduced motion",
+    "tutorial pages are served by the local preview server",
+    "main page interactions produce no browser errors"
+  ],
+  "apps/web/e2e/stage8-keyboard-walkthrough.spec.js": [
+    "Complete Tab order through shell, playground, and each tutorial",
+    "Auth form modal: focus trapping, Escape closes, focus returns to trigger",
+    "Delete-account dialog: focus trapped, Escape closes, focus returns to trigger"
+  ],
+  "apps/web/e2e/stage8-ui-quality.spec.js": [
+    "Reflow: ${name} must not have horizontal scroll at 320px width",
+    "Primary controls target size is at least 44x44 CSS px",
+    "Visible focus indicator has at least 3px outline",
+    "prefers-reduced-motion is honored",
+    "prefers-color-scheme is respected on first visit with persisted manual override",
+    "Form accessibility: associated labels, aria-describedby, aria-live errors, and focus on invalid field",
+    "Todo panel provides empty, loading, and error states (never blank)"
+  ],
+  "scripts/assert-test-db.test.js": [
+    "Test DB URL Validation",
+    "rejects .../gdgoc",
+    "accepts .../gdgoc_test",
+    "rejects postgresql://dev_test:pw@localhost/gdgoc",
+    "rejects .../gdgoc_test_backup",
+    "accepts .../gdgoc_test?schema=public",
+    "rejects remote host without CI=true",
+    "accepts remote host with CI=true",
+    "accepts localhost and 127.0.0.1"
+  ]
+}

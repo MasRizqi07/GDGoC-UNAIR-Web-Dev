@@ -5,22 +5,26 @@ node_modules/
 npm-debug.log*
 
 # Build artifacts
+dist
 dist/
 build/
 .next/
 
 # Environment
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
 
 # Testing
+test-results
 test-results/
+playwright-report
 playwright-report/
 playwright/.cache/
+coverage
 coverage/
+evidence
+evidence/
 
 # OS/Editor
 .DS_Store
@@ -32,3 +36,9 @@ coverage/
 *.sln
 *.sw?
 
+# Database and cache
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.tsbuildinfo

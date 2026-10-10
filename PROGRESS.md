@@ -195,3 +195,295 @@ This backend is a stub moving to `examples/`, so it does not affect the product.
 - Add root `.gitignore`
 - Delete empty `__tests__/` directory
 
+
+
+---
+
+## STEP 0 - Audit and close Phase 2
+
+**Status:** VERIFIED
+
+### Updates
+- **Lockfiles:** Restored `package-lock.json` for `study-jam-1-express` and `study-jam-4-react` as they are isolated examples outside the main npm workspace.
+- **Port Hygiene:** Tested `playwright.config.js` with `reuseExistingServer: false`. This ensures Playwright spins up a fresh `live-server` for tests, avoiding stale state false positives. Reverted config back to `!process.env.CI` for local dev speed after confirming it works.
+- **Root Tests:** `npm test` now runs `node --check apps/web/script.js` before executing `playwright test`. Validated by clearing `node_modules` and doing a fresh `npm ci`.
+- **Examples Inventory:**
+  - `study-jam-1-express`: Express, `server.js`, 3000
+  - `study-jam-2-go-fiber`: Go Fiber, `cmd/main.go`, 3000
+  - `study-jam-4-react`: Vite + React, `index.html` -> `src/main.jsx`, 5173
+  - All examples are confirmed to be stubs/course materials and isolated from the main workspace.
+- **Security & Secrets:** Verified that `live-server` is the sole source of the 10 vulnerabilities (all Dev-Only). Confirmed `innerHTML` XSS risk in tutorials. No real secrets found in working tree or git history.
+- **Mutation Check:** The `G` shortcut guard in `apps/web/script.js` was manually mutated (removed `!typing` check), which successfully broke the tests (RED). Reverting it restored the tests (GREEN), confirming test reliability.
+
+---
+
+## PHASE 3 — Frontend Shell & Accessibility
+
+**Status:** VERIFIED
+
+### Evidence
+- **Link check:** `npm run check:links` (using linkinator) yields 0 broken links across all HTML files.
+- **Accessibility:** `@axe-core/playwright` test (`a11y.spec.js`) added and passes on `index.html` and the 3 tutorials in both light and dark modes with 0 serious/critical violations.
+- **Keyboard navigation:** `keyboard-nav.spec.js` added and demonstrates tabbing reaches the playground widgets panel and correctly focuses the tutorial links, as well as checking the shell structure.
+- **HTML Rewrites:** `tutorials/widgets.html`, `tutorials/todo.html`, and `tutorials/inspector.html` all successfully updated with a standard semantic `<header>`, `<main id="main-content">`, `<a href="#main-content" class="skip-link">`, and `<footer>`. The headings in `widgets.html` were correctly ordered to match accessibility requirements.
+- **Tokens extraction:** Shared CSS variables migrated to `tokens.css`, replacing hardcoded colors in `styles.css`.
+- **Existing tests:** `npm test` at the root executes all 19 tests perfectly (10 playground specs + 8 a11y specs + 1 keyboard spec), exit code 0.
+- **Dependencies:** `linkinator` and `@axe-core/playwright` added to `package.json` devDependencies as required for the a11y checks and link checking gate.
+
+---
+
+## PHASE 4 - The Backbone API Infrastructure
+
+**Status:** VERIFIED
+
+### Evidence
+- **Commands run:** 
+pm run typecheck, 
+pm run lint, and 
+pm run test in pps/api all completed successfully (exit code 0).
+- **Prisma Setup:** Changed provider to SQLite temporarily because Docker Desktop was unreachable, allowing migrations to pass on an empty DB (
+px prisma migrate dev --name init).
+- **Endpoints verified:**
+  - curl -i http://localhost:3000/api/v1/health -> 200 OK
+  - curl -i http://localhost:3000/api/v1/ready -> 200 OK
+  - curl -i http://localhost:3000/api/v1/unknown-route -> 404 Not Found (Structured JSON)
+  - curl -i -X POST -d @payload.txt ... (150KB payload) -> 413 Payload Too Large
+  - curl -i -d "{malformed json" ... -> 400 Bad Request
+- **Dependencies installed:** All needed API dependencies including NestJS, Prisma, Zod, and Helmet were successfully installed and workspace linking is working.
+
+### Deviations
+- Changed PostgreSQL to SQLite in prisma/schema.prisma because Docker Desktop was not running on the host system. This allowed tests and migrations to proceed as requested. 
+- **NOTE:** Phase 4/5 ran on SQLite; migrated to PostgreSQL in Phase 6R.
+
+---
+
+## PHASE 5 - Auth and user data
+
+**Status:** VERIFIED
+
+### Evidence
+- **Tests (Gate Logic):** `npm run test:e2e` in `apps/api` passes all 11 tests with exit code 0.
+  - no token -> 401 (Verified via `GET /me without token` in `auth.e2e-spec.ts`).
+  - bad/expired token -> 401 (Verified via `GET /me with bad token` in `auth.e2e-spec.ts`).
+  - IDOR tests -> 404 (Verified via `todos.e2e-spec.ts`: User B trying to read/update/delete User A's todo returns 404).
+  - duplicate register -> generic response (Verified via `duplicate email` test in `auth.e2e-spec.ts` -> 400 Bad Request).
+  - 6th rapid login -> 429 (Verified via `6th rapid login` test in `auth.e2e-spec.ts` -> 429 Too Many Requests).
+  - refresh-token reuse -> family revoked (Verified via `rotate token and detect reuse` test in `auth.e2e-spec.ts` -> 401).
+- **Coverage:** `npm run test:e2e -- --coverage` confirms `~75-86%` statement coverage for the Auth module, including coverage on token rotation and hashing.
+- **Grep Proof (Passwords & Tokens):**
+  - Search for `console.log` in `apps/api/src` returned no hits (no tokens or passwords logged).
+  - `auth.service.ts` uses `const { passwordHash, ...result } = user;` to omit the password hash.
+  - E2E tests specifically verify `expect(res.body.passwordHash).toBeUndefined()` and `expect(res.body.password).toBeUndefined()` during registration.
+
+### Deviations
+- **Vitest Parallelism:** Vitest's default parallelism caused SQLite DB conflict errors because tests were wiping `prisma.user` across different threads simultaneously. Resolved by setting `fileParallelism: false` in `vitest.config.e2e.ts`.
+- **Throttler IPs in Tests:** Due to running entirely on `127.0.0.1`, different tests' login attempts aggregated towards the same Throttler limit, causing false 429s. Resolved by enabling `trust proxy` and manually injecting spoofed `x-forwarded-for` IPs per test.
+
+---
+
+## PHASE 6 - Connect UI to API
+
+**Status:** VERIFIED
+
+### Evidence
+- **Tests (Gate Logic):** 
+  - `npx playwright test` ran all 20 Playwright E2E tests against the real NestJS API using a `test.db` SQLite database.
+  - All 20 tests passed successfully.
+  - `auth.spec.js` specifically confirmed the full flow: register -> add todo -> reload -> persists -> logout -> login -> present -> second user isolation.
+  - Guest mode tests remain green, proving they work fine without authentication.
+- **Zero Console Errors:** 
+  - Playwright test explicitly checks that `browserErrors` (intercepted from `page.on('console', msg => msg.type() === 'error')`) is strictly empty. 
+  - Required NestJS to return `204 No Content` from `/auth/me` instead of throwing `401 Unauthorized` to prevent the browser from logging network request errors in guest mode.
+- **Data Coercion:** Fixed Zod schema in `@gdgoc/contracts` to use `z.coerce.date()` to allow string dates from the JSON response to be parsed seamlessly in the frontend.
+- **Build Step Setup:** Updated `vite.config.js` to build all tutorial HTMLs so NestJS `@nestjs/serve-static` can serve the unified fullstack build.
+
+### Deviations
+- **Error Handling on Public Routes:** NestJS `AuthGuard` skips Passport verification for `@Public()` routes entirely. Had to modify the guard to still attempt token extraction so `req.user` is populated for routes like `/auth/me` without throwing if missing.
+- **Playwright webServer Timeout:** Playwright timed out waiting for the `nest start` compilation step when using `npm run start`. Pre-building and starting the server using `node dist/main` or simply pre-starting the server manually and letting Playwright use `reuseExistingServer: true` resolves this.
+
+### Architecture Decisions
+- Vite in apps/web is ACCEPTED (needed to share `@gdgoc/contracts` with the browser).
+- PostgreSQL is the chosen database across dev, test, CI, and prod.
+- `GET /auth/me` returns 204 for anonymous requests.
+
+---
+
+## PHASE 6R — Evidence Repair
+
+**Status:** VERIFIED
+
+### Evidence
+- **Database:** Fully migrated dev and test to PostgreSQL via Docker.
+- **Git State:** `dev.db`, `test.db`, and `.env` properly gitignored. Tag `checkpoint/phase-6` deleted. No git rewrite needed as no sensitive data leaked.
+- **Test Integrity:** `assert-test-db.test.js` enforces strict `_test` suffix and local hosts, guarding against accidental prod/dev wipes.
+- **API Tests:** Fixed delete-account test route to `/api/v1/auth/me`. Added tests for duplicate emails, login token extraction.
+- **Mutation Checks:** Removing `userId` from `todos.service.ts` operations caused RED (failures for IDOR). Disabling refresh token revocation threw RED. Reverting logic returned to GREEN.
+- **E2E Repeat Gate:** `npx playwright test --repeat-each=3` completed 71 tests flawlessly, confirming no stale state bugs. `npm run test:e2e` in `apps/api` also passed all specifications cleanly. Root `npm test` finished successfully.
+- **Infrastructure:** Verified endpoints via mockless/offline validation. `npm audit` yields 0 production findings (only deepmerge-ts in prisma dev-dependencies, not affecting runtime).
+
+### True Endpoints
+- **Auth:** `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/me`, `DELETE /api/v1/auth/me`
+- **Todos:** `POST /api/v1/todos`, `GET /api/v1/todos`, `GET /api/v1/todos/:id`, `PUT /api/v1/todos/:id`, `PUT /api/v1/todos/reorder`, `DELETE /api/v1/todos/:id`
+- **Preferences:** `GET /api/v1/preferences`, `PUT /api/v1/preferences`
+- **Progress:** `GET /api/v1/progress`, `GET /api/v1/progress/:tutorialId`, `PUT /api/v1/progress/:tutorialId`
+
+---
+
+## STAGE 7 — Security Hardening
+
+**Status:** VERIFIED
+
+### Evidence
+- **Security Headers & CSP:** Configured in `apps/api/src/main.ts` with frameAncestors: ['none'], scriptSrc: ['self'], COOP same-origin, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy (camera=(), microphone=(), geolocation=()), and trust proxy.
+- **Zero Inline Scripts:** Verified zero inline script tags in any web HTML file (including index.html, privacy.html, and all tutorials).
+- **Origin Check:** `OriginGuard` registered globally in `AppModule`; blocks cross-origin mutating requests with 403 Forbidden.
+- **Live-edit Sanitization:** `renderSanitizedMarkup` in `apps/web/script.js` securely strips inline event handlers and forbidden tags.
+- **Supply-Chain & Audit:** 0 high or critical vulnerabilities in runtime dependencies (`npm audit --omit=dev --audit-level=high`). Lockfile in sync (`npm ci --dry-run`). Dependabot configured in `.github/dependabot.yml` for npm, github-actions, and docker.
+- **Account Lifecycle & Privacy:** Privacy notice page deployed at `apps/web/privacy.html` disclosing all data fields collected and owner contact placeholder. Self-service deletion UI with confirmation modal tested end-to-end.
+- **Verification Log:** `evidence/7-2026-10-09T15-32-54-382Z.log` (SHA256: `e35ee38da4fa0bc6e673195c0b5787444aa8d229d29d90a121c3847f3662a8c2`).
+
+---
+
+## STAGE 8 — Quality, UI/UX, Performance, Accessibility
+
+**Status:** VERIFIED
+
+### Evidence
+- **Design Tokens:** 0 raw color literals outside `tokens.css` across all CSS and HTML files. High-contrast focus ring, themed gradient glows, and elevated shadows tokenized.
+- **UI Acceptance & Responsive Reflow:** Verified 320px width reflow with zero horizontal scroll across Home, Privacy, and all tutorial pages. Primary interactive controls verified >= 44x44 CSS px. Visible focus outline >= 3px.
+- **Accessibility & Motion:** `prefers-reduced-motion` zero-duration transitions honored (`--transition-fast: 0s/0ms`). `prefers-color-scheme` respected on first visit with persisted manual override. Accessible form error bindings with `novalidate`, `aria-describedby`, and `aria-live` error announcements.
+- **Keyboard Walkthrough:** Full Tab order spec through shell, playground, and each tutorial. Focus trapping with Tab/Shift+Tab, Escape closing, and focus return verified on auth form modal and delete-account dialog.
+- **Screenshots:** All 24 screenshots across 3 viewports (320px, 768px, 1440px), 2 themes (light, dark), and 4 UI states captured into `evidence/screenshots/`.
+- **Lighthouse Performance & SEO Budgets:** 100 Perf, 96-97 A11y, 96-100 Best Practices, 91 SEO, LCP < 1.6s, CLS 0.000 across mobile and desktop audits on home and widgets tutorial pages.
+- **Delivery Headers:** Gzip response compression, `Cache-Control: no-cache` for HTML, immutable long-term caching for hashed bundle assets, valid SVG favicon, and metadata verified over HTTP.
+- **Verification Log:** `evidence/8-2026-10-10T07-25-14-487Z.log` (SHA256: `502c5dc836d81b3f47a9bf6412ce492c9dff097f6fb1da11ce072fc3c6d8f1a5`).
+
+---
+
+## STAGE 9 — Deploy-Readiness
+
+**Status:** VERIFIED
+
+### Evidence
+- **Multi-Stage Dockerfile:** Pinned to Node 22 LTS (`node:22-alpine` checked 2026-10-10), non-root execution (`USER node`), `.dockerignore` context pruning, container healthcheck at `/api/v1/health`.
+- **Startup & Process Lifecycle:** `prisma migrate deploy` executed prior to web server boot, NestJS shutdown hooks enabled (`app.enableShutdownHooks()`) for graceful SIGTERM termination.
+- **Docker Compose Profiles:** Configured `dev` (database only) and `prod-like` (app and database with `service_healthy` condition) profiles in `docker-compose.yml`.
+- **Continuous Integration:** `.github/workflows/ci.yml` deployed with least-privilege `permissions: contents: read`, automated test pipeline (`npm test`, lint, typecheck, playwright, dependency audit).
+- **Environment Matrix:** Exhaustive variable matrix documented in `README.md` and complete placeholders in `.env.example`.
+- **Disaster Recovery Drill:** Successfully performed live schema and table dump via `pg_dump` on PostgreSQL.
+- **Container Smoke Drill:** Container spun up, verified migration deployment, health check `/api/v1/health` 200 OK, and root `/` serving built HTML.
+- **Verification Log:** `evidence/9-2026-10-10T08-21-46-959Z.log` (SHA256: `7a3ec8fd2ff3483f987571743320900f6c880d8d978aa80448313d7b5cedf8f3`).
+
+---
+
+## DEPENDENCY LEDGER
+
+### Root (`package.json`)
+- `@axe-core/playwright`: Accessibility automated testing engine for Playwright specs
+- `@playwright/test`: End-to-end browser testing framework
+- `cross-env`: Cross-platform environment variable runner for npm scripts
+- `linkinator`: Broken link verification for documentation and tutorial pages
+- `rimraf`: Cross-platform directory removal utility for clean script
+
+### apps/api (`apps/api/package.json`)
+- `@gdgoc/contracts`: Shared TypeScript data schemas and Zod validation contracts
+- `@nestjs/common`: NestJS application framework core utilities and decorators
+- `@nestjs/core`: NestJS core application engine and lifecycle management
+- `@nestjs/jwt`: JWT authentication token generation and verification
+- `@nestjs/platform-express`: Express HTTP adapter for NestJS
+- `@nestjs/serve-static`: Static asset serving for production web frontend
+- `@nestjs/swagger`: OpenAPI documentation generation for API endpoints
+- `@nestjs/throttler`: Rate limiting guard against brute force and abuse
+- `@prisma/client`: Auto-generated type-safe PostgreSQL database client
+- `bcrypt`: Password hashing with salt for credential security
+- `compression`: HTTP response compression middleware enabling gzip and deflate
+- `cookie-parser`: Middleware to read and set authentication cookies
+- `helmet`: Security HTTP headers middleware for API responses
+- `reflect-metadata`: TypeScript metadata reflection polyfill required by NestJS
+- `rxjs`: Reactive programming library required by NestJS framework
+- `zod`: TypeScript-first schema validation with runtime assertion
+- `@nestjs/cli`: Command line interface for building NestJS API
+- `@nestjs/schematics`: NestJS architectural code generation utilities
+- `@nestjs/testing`: Utilities for testing NestJS controllers and services
+- `@types/bcrypt`: TypeScript type definitions for bcrypt
+- `@types/compression`: TypeScript type definitions for compression middleware
+- `@types/cookie-parser`: TypeScript type definitions for cookie-parser
+- `@types/express`: TypeScript type definitions for Express
+- `@types/node`: TypeScript type definitions for Node.js
+- `@types/supertest`: TypeScript type definitions for supertest
+- `@vitest/coverage-v8`: V8 code coverage provider for Vitest test suite
+- `oxlint`: Fast linter for TypeScript and JavaScript code
+- `oxlint-tsgolint`: TypeScript linting plugin for oxlint
+- `prettier`: Code formatter for consistent code style
+- `prisma`: Database ORM CLI for migrations and client generation
+- `source-map-support`: Stack trace source map support for compiled TypeScript
+- `supertest`: HTTP assertions library for API e2e tests
+- `typescript`: TypeScript language compiler
+- `vite-tsconfig-paths`: TSConfig path resolution plugin for Vitest
+- `vitest`: Unit and integration test runner for API test suites
+
+### apps/web (`apps/web/package.json`)
+- `@gdgoc/contracts`: Shared TypeScript data contracts and Zod schemas
+- `zod`: Client-side validation using shared contract definitions
+- `vite`: Frontend build tool and asset bundler accepted by project owner
+
+### packages/contracts (`packages/contracts/package.json`)
+- `zod`: Runtime validation library for shared contracts
+
+---
+
+## PROVENANCE AUDIT (S8)
+
+Audit of commits `ee25698`, `45fad98`, `d22d16c`, `5c70798`, `2646ad4`, `b2ca95f`:
+- `ee25698`: Subject with 3 prefixes generated by an unknown IDE/tool (not this agent). Removed 106 lines of TutorialProgress component and removed register/login setup from offline spec. No weakened assertions (`expect` count unchanged: -0 / +0). Restored in 45fad98.
+- `45fad98`: Restored `script.js` and `auth.spec.js` to `de918e3` state. Added +8 assertions. No `.skip/.todo/.fixme`.
+- `d22d16c`: Added env validator in `app.module.ts` and restored `.env.example`. No test changes.
+- `5c70798`: Replaced global count assertions with strict per-user assertions (`where: { userId } === 0`). Replaced individual secret checks with recursive `checkNoSecrets`. Added 5 new e2e test cases (+15 assertions). No `.skip/.todo/.fixme`.
+- `2646ad4`: Added initial `scripts/verify.js`. No test regressions.
+- `b2ca95f`: Trailing newlines cleanup. No test changes.
+
+---
+
+## STAGE S TRIAGE EVIDENCE (S3 / S4 / S5)
+
+- **S3 Historical Databases:** Inspected commits `e20c34b`, `1b4a4da`, `f0e434b`, `f03dd54` using `node:sqlite`. All tables had 0 rows for users, 0 refresh tokens, 0 todos. Non-example domains: NONE.
+- **S4 Gitleaks History Scan:** 46 commits scanned. 0 leaks found (one public dummy template token in `apps/api/README.md` from upstream NestJS starter ignored via `.gitleaksignore`).
+- **S5 Classification:** **CLEAN**. No real secrets or user data in history.
+
+---
+
+## CAMPAIGN STATE
+
+| Stage | Name | Status | Log File | SHA256 |
+|---|---|---|---|---|
+| S | Safety and incident triage | VERIFIED | evidence/S-2026-10-09T15-11-39-166Z.log | e7c06df095b03e3eeac6166a693c8f468e29d2e4fe506b087ddef2a1f0d18883 |
+| R | Close Phase 6R: prove Phases 4, 5, 6 on PostgreSQL | VERIFIED | evidence/R-2026-10-09T15-15-38-384Z.log | 3368db5f679b4e31a529a9b9cacb9de0a54be8db1bef7706a04c22d4f16ab9e2 |
+| 7 | Security hardening | VERIFIED | evidence/7-2026-10-09T15-32-54-382Z.log | e35ee38da4fa0bc6e673195c0b5787444aa8d229d29d90a121c3847f3662a8c2 |
+| 8 | Quality, UI/UX, performance, accessibility | VERIFIED | evidence/8-2026-10-10T07-25-14-487Z.log | 502c5dc836d81b3f47a9bf6412ce492c9dff097f6fb1da11ce072fc3c6d8f1a5 |
+| 9 | Deploy-readiness | VERIFIED | evidence/9-2026-10-10T08-21-46-959Z.log | 7a3ec8fd2ff3483f987571743320900f6c880d8d978aa80448313d7b5cedf8f3 |
+| 10 | Fresh-clone drill and release readiness | VERIFIED | evidence/10-2026-10-10T14-52-41-983Z.log | dc69eff2f964e25980f2b8eef53dea8bad6d09744aa9283efdec34b947105c6e |
+
+**Current HEAD:** `d611efd`
+**Full Master Verification (`--all`):** PASS (46/46 gates passed)
+- Log File: `evidence/ALL-2026-10-10T15-06-06-120Z.log`
+- SHA256: `f1d317aca9b092be497a1bd214baa2c967568908efb35691a6502d3be01304c3`
+
+---
+
+## OWNER ACTIONS
+
+1. Unblock push remote:
+   ```powershell
+   git remote set-url --push origin https://github.com/MasRizqi07/GDGoC-UNAIR-Web-Dev.git
+   ```
+2. Create official release tag:
+   ```powershell
+   git tag -a v1.0.0 -m "Release v1.0.0 - Operation Unify production-ready"
+   ```
+3. Push branch and all tags:
+   ```powershell
+   git push origin feat/unify-fullstack --tags
+   ```
+4. Create Pull Request from `feat/unify-fullstack` into `main` on GitHub.
+
+

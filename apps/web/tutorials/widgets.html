@@ -1,13 +1,32 @@
 <!doctype html>
 <html lang="en">
-  <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Explore custom web component widgets including Shadow DOM tabs and drag-and-drop lists.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Widgets Tutorial — Deep Dive UI</title>
   <link rel="stylesheet" href="../styles.css">
-  <script type="module" src="../script.js"></script>
+  <script type="module" src="../script.js" defer></script>
 </head>
 <body>
-  <main style="max-width:900px;margin:2rem auto;padding:1rem">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <header class="site-header">
+    <a class="brand" href="../index.html" aria-label="DEEPDIVE home">
+      <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+      <span>DEEP<span class="brand-light">DIVE</span></span>
+    </a>
+    <div class="header-controls">
+      <button class="button button-quiet" id="theme-toggle" type="button" aria-pressed="false">
+        <span class="button-icon" aria-hidden="true">◐</span>
+        <span class="theme-label">Dark mode</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main-content" class="page-shell" style="max-width:900px;margin:2rem auto;padding:1rem">
     <h1>Widgets — Guided Tutorial</h1>
     <p>This tutorial explains how the <code>&lt;demo-tabs&gt;</code> and <code>&lt;drag-list&gt;</code> components are implemented and how they interact with the DOM.</p>
 
@@ -33,7 +52,7 @@ class DemoTabs extends HTMLElement {
 }
 </code></pre>
 
-    <h4>Walkthrough (line-by-line)</h4>
+    <h3>Walkthrough (line-by-line)</h3>
     <ol>
       <li><strong>Shadow root</strong> — calling <code>this.attachShadow({mode:'open'})</code> prevents styles leaking and allows the component to define its own CSS.</li>
       <li><strong>Render</strong> — the component writes static HTML for controls and panels into <code>shadowRoot.innerHTML</code>. Keep this minimal to improve performance.</li>
@@ -42,37 +61,31 @@ class DemoTabs extends HTMLElement {
       <li><strong>Accessibility</strong> — consider adding ARIA attributes (role="tablist", role="tab", aria-selected) when expanding this pattern.</li>
     </ol>
 
-    <h4>Implementation tips</h4>
+    <h3>Implementation tips</h3>
     <ul>
       <li>Keep data-bindings simple: components should reflect DOM state from attributes or properties.</li>
       <li>Avoid heavy computation in <code>connectedCallback</code>; defer work to microtasks if needed.</li>
     </ul>
 
-    <h3>Live-edit example</h3>
+    <h2>Live-edit example</h2>
     <p>Edit the HTML usage below and press <strong>Run</strong> to render a live preview using the registered components.</p>
+    <label for="code-editor" class="sr-only">HTML code editor</label>
     <textarea id="code-editor" style="width:100%;height:90px">&lt;demo-tabs&gt;&lt;/demo-tabs&gt;
 &lt;drag-list&gt;&lt;/drag-list&gt;</textarea>
-    <div style="margin:.5rem 0"><button id="run">Run</button> <button id="reset">Reset</button></div>
-    <div id="live-preview" style="border:1px solid rgba(0,0,0,0.06);padding:1rem;border-radius:6px;background:var(--bg)"></div>
+    <div style="margin:.5rem 0"><button id="run" class="button button-primary">Run</button> <button id="reset" class="button button-quiet">Reset</button></div>
+    <div id="live-preview" class="preview-sandbox"></div>
 
     <h2>Drag & Drop (notes)</h2>
     <p>The <code>&lt;drag-list&gt;</code> uses native <code>dragstart</code>, <code>dragover</code>, and <code>drop</code> events — on drop it reorders child nodes by moving the dragged node before/after the drop target.</p>
 
-    <p><a href="../index.html">Back to demo</a></p>
+    <tutorial-progress tutorial-id="widgets"></tutorial-progress>
+    <p style="margin-top: 2rem"><a href="../index.html" class="resource-link">Back to demo <span aria-hidden="true">↗</span></a></p>
   </main>
 
-  <script>
-    document.getElementById('run').addEventListener('click',()=>{
-      const code = document.getElementById('code-editor').value;
-      const preview = document.getElementById('live-preview');
-      preview.innerHTML = code;
-    });
-    document.getElementById('reset').addEventListener('click',()=>{
-      document.getElementById('code-editor').value = '<demo-tabs></demo-tabs>\n<drag-list></drag-list>';
-      document.getElementById('run').click();
-    });
-    // render initial
-    document.getElementById('run').click();
-  </script>
+  <footer class="page-footer">
+    <a class="brand footer-brand" href="../index.html" aria-label="DEEPDIVE home"><span class="brand-mark" aria-hidden="true">&lt;/&gt;</span><span>DEEP<span class="brand-light">DIVE</span></span></a>
+    <p>Made for curious clicks and better questions.</p>
+    <span class="footer-code">VANILLA JS · DOM · 2026</span>
+  </footer>
 </body>
 </html>

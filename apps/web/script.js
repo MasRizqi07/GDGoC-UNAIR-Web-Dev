@@ -1,3 +1,6 @@
+import { api } from './api-client.js';
+import { checkSession, initAuthUI, getCurrentUser } from './auth.js';
+
 class DemoTabs extends HTMLElement {
   constructor() {
     super();
@@ -190,6 +193,9 @@ class TodoApp extends HTMLElement {
     this.shadowRoot.addEventListener('submit', this.onSubmit);
     this.shadowRoot.addEventListener('click', this.onClick);
     window.addEventListener('storage', this.onStorage);
+    this.onAuth = () => setTimeout(() => this.renderList(), 0);
+    document.addEventListener('auth:login', this.onAuth);
+    document.addEventListener('auth:logout', this.onAuth);
     this.renderList();
   }
 
@@ -197,6 +203,8 @@ class TodoApp extends HTMLElement {
     this.shadowRoot.removeEventListener('submit', this.onSubmit);
     this.shadowRoot.removeEventListener('click', this.onClick);
     window.removeEventListener('storage', this.onStorage);
+    document.removeEventListener('auth:login', this.onAuth);
+    document.removeEventListener('auth:logout', this.onAuth);
   }
 
   render() {
@@ -228,7 +236,25 @@ class TodoApp extends HTMLElement {
     `;
   }
 
-  readTodos() {
+  async readTodos() {
+    if (getCurrentUser()) {
+      try {
+        let rawLocal;
+        try { rawLocal = localStorage.getItem(this.storageKey); } catch(e){}
+        const localTodos = rawLocal ? JSON.parse(rawLocal) : [];
+        if (localTodos.length > 0) {
+          localStorage.removeItem(this.storageKey);
+          for (const t of localTodos) {
+            await api.todos.create(typeof t === 'string' ? t : t.text);
+          }
+        }
+        const todos = await api.todos.list();
+        return { ok: true, todos: todos.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) };
+      } catch (error) {
+        return { ok: false, error };
+      }
+    }
+
     let raw;
     try {
       raw = localStorage.getItem(this.storageKey);
@@ -249,7 +275,7 @@ class TodoApp extends HTMLElement {
     }
   }
 
-  writeTodos(todos) {
+  async writeTodosLocal(todos) {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(todos));
       return { ok: true };
@@ -260,11 +286,11 @@ class TodoApp extends HTMLElement {
 
   reportStorageError(error) {
     const status = this.shadowRoot.getElementById('status');
-    status.textContent = 'Tasks could not be saved or read in this browser. Check storage permissions and reload.';
-    console.error('Todo storage error:', error);
+    status.textContent = 'Tasks could not be saved or read. Check your connection or storage permissions.';
+    console.error('Todo error:', error);
   }
 
-  onSubmit(event) {
+  async onSubmit(event) {
     if (event.target.id !== 'form') return;
     event.preventDefault();
 
@@ -274,57 +300,88 @@ class TodoApp extends HTMLElement {
       input.focus();
       return;
     }
+    
+    const submitBtn = this.shadowRoot.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
 
-    const loaded = this.readTodos();
-    if (!loaded.ok) {
-      this.reportStorageError(loaded.error);
-      return;
+    if (getCurrentUser()) {
+      try {
+        await api.todos.create(value);
+        input.value = '';
+        await this.renderList();
+      } catch (error) {
+        this.reportStorageError(error);
+      }
+    } else {
+      const loaded = await this.readTodos();
+      if (!loaded.ok) {
+        this.reportStorageError(loaded.error);
+        submitBtn.disabled = false;
+        return;
+      }
+      const result = await this.writeTodosLocal([...loaded.todos, value]);
+      if (!result.ok) {
+        this.reportStorageError(result.error);
+        submitBtn.disabled = false;
+        return;
+      }
+      input.value = '';
+      await this.renderList();
     }
-
-    const result = this.writeTodos([...loaded.todos, value]);
-    if (!result.ok) {
-      this.reportStorageError(result.error);
-      return;
-    }
-
-    input.value = '';
-    this.renderList();
+    submitBtn.disabled = false;
     input.focus();
   }
 
-  onClick(event) {
+  async onClick(event) {
     const button = event.target.closest?.('button[data-remove]');
     if (!button || !this.shadowRoot.contains(button)) return;
 
-    const loaded = this.readTodos();
-    if (!loaded.ok) {
-      this.reportStorageError(loaded.error);
-      return;
+    button.disabled = true;
+
+    if (getCurrentUser()) {
+      try {
+        await api.todos.remove(button.dataset.remove);
+        await this.renderList();
+      } catch (error) {
+        this.reportStorageError(error);
+        button.disabled = false;
+        return;
+      }
+    } else {
+      const loaded = await this.readTodos();
+      if (!loaded.ok) {
+        this.reportStorageError(loaded.error);
+        button.disabled = false;
+        return;
+      }
+
+      const index = Number(button.dataset.remove);
+      if (!Number.isInteger(index) || index < 0 || index >= loaded.todos.length) return;
+
+      const todos = loaded.todos.filter((_, itemIndex) => itemIndex !== index);
+      const result = await this.writeTodosLocal(todos);
+      if (!result.ok) {
+        this.reportStorageError(result.error);
+        button.disabled = false;
+        return;
+      }
+
+      await this.renderList();
+      const nextRemoveButton = this.shadowRoot.querySelector(`button[data-remove="${Math.min(index, todos.length - 1)}"]`);
+      (nextRemoveButton || this.shadowRoot.getElementById('input')).focus();
     }
-
-    const index = Number(button.dataset.remove);
-    if (!Number.isInteger(index) || index < 0 || index >= loaded.todos.length) return;
-
-    const todos = loaded.todos.filter((_, itemIndex) => itemIndex !== index);
-    const result = this.writeTodos(todos);
-    if (!result.ok) {
-      this.reportStorageError(result.error);
-      return;
-    }
-
-    this.renderList();
-    const nextRemoveButton = this.shadowRoot.querySelector(`button[data-remove="${Math.min(index, todos.length - 1)}"]`);
-    (nextRemoveButton || this.shadowRoot.getElementById('input')).focus();
   }
 
-  onStorage(event) {
-    if (event.key === this.storageKey || event.key === null) this.renderList();
+  async onStorage(event) {
+    if (event.key === this.storageKey || event.key === null) await this.renderList();
   }
 
-  renderList() {
+  async renderList() {
     const list = this.shadowRoot.getElementById('list');
     const status = this.shadowRoot.getElementById('status');
-    const loaded = this.readTodos();
+    status.textContent = 'Loading...';
+    
+    const loaded = await this.readTodos();
     list.replaceChildren();
 
     if (!loaded.ok) {
@@ -344,19 +401,21 @@ class TodoApp extends HTMLElement {
     loaded.todos.forEach((todo, index) => {
       const item = document.createElement('li');
       const text = document.createElement('span');
-      text.textContent = todo;
+      text.textContent = typeof todo === 'string' ? todo : todo.text;
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'remove';
-      remove.dataset.remove = String(index);
-      remove.setAttribute('aria-label', `Remove task: ${todo}`);
+      remove.dataset.remove = typeof todo === 'string' ? String(index) : todo.id;
+      remove.setAttribute('aria-label', `Remove task: ${text.textContent}`);
       remove.textContent = 'Remove';
       item.append(text, remove);
       list.append(item);
     });
-    status.textContent = `${loaded.todos.length} ${loaded.todos.length === 1 ? 'task' : 'tasks'} saved in this browser.`;
+    status.textContent = `${loaded.todos.length} ${loaded.todos.length === 1 ? 'task' : 'tasks'} saved ${getCurrentUser() ? 'to your account' : 'in this browser'}.`;
   }
 }
+
+
 
 class DomInspector extends HTMLElement {
   constructor() {
@@ -449,10 +508,114 @@ class DomInspector extends HTMLElement {
   }
 }
 
+class TutorialProgress extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.storageKeyPrefix = 'demo-tutorial-';
+    this.onToggle = this.onToggle.bind(this);
+    this.onAuth = () => setTimeout(() => this.renderState(), 0);
+  }
+
+  get tutorialId() {
+    return this.getAttribute('tutorial-id') || 'unknown';
+  }
+
+  connectedCallback() {
+    this.render();
+    this.button = this.shadowRoot.getElementById('toggle');
+    this.button.addEventListener('click', this.onToggle);
+    document.addEventListener('auth:login', this.onAuth);
+    document.addEventListener('auth:logout', this.onAuth);
+    this.renderState();
+  }
+
+  disconnectedCallback() {
+    this.button?.removeEventListener('click', this.onToggle);
+    document.removeEventListener('auth:login', this.onAuth);
+    document.removeEventListener('auth:logout', this.onAuth);
+  }
+
+  render() {
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host{display:block;margin:1.5rem 0;}
+        button{display:inline-flex;min-height:42px;align-items:center;gap:.5rem;padding:.6rem .85rem;border:1px solid transparent;border-radius:9px;background:var(--accent);color:var(--accent-ink);cursor:pointer;font-family:inherit;font-size:.75rem;font-weight:700;line-height:1;transition:background-color 150ms ease,transform 150ms ease}
+        button:hover:not(:disabled){background:var(--accent-strong);transform:translateY(-1px)}
+        button:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+        button[aria-pressed="true"]{border-color:var(--line);background:var(--surface);color:var(--text);cursor:default;transform:none;opacity:1;}
+        button:focus-visible{outline:3px solid var(--accent-strong);outline-offset:3px}
+      </style>
+      <button id="toggle" type="button" aria-pressed="false">Mark Tutorial as Complete</button>
+      <p id="error" style="color:var(--error);font-size:0.75rem;margin-top:0.5rem;display:none;"></p>
+    `;
+  }
+
+  async getProgress() {
+    if (getCurrentUser()) {
+      try {
+        const list = await api.progress.list();
+        const progress = list.find(p => p.tutorialId === this.tutorialId);
+        return progress ? progress.completed : false;
+      } catch (err) {
+        console.error('Failed to get tutorial progress', err);
+        return false;
+      }
+    }
+    return localStorage.getItem(this.storageKeyPrefix + this.tutorialId) === '1';
+  }
+
+  async setProgress(completed) {
+    if (getCurrentUser()) {
+      try {
+        await api.progress.update(this.tutorialId, completed);
+        return true;
+      } catch (err) {
+        console.error('Failed to update tutorial progress', err);
+        this.shadowRoot.getElementById('error').textContent = 'Failed to sync progress. Please try again.';
+        this.shadowRoot.getElementById('error').style.display = 'block';
+        return false;
+      }
+    }
+    localStorage.setItem(this.storageKeyPrefix + this.tutorialId, completed ? '1' : '0');
+    return true;
+  }
+
+  async renderState() {
+    this.button.disabled = true;
+    this.button.textContent = 'Loading...';
+    this.shadowRoot.getElementById('error').style.display = 'none';
+
+    const completed = await this.getProgress();
+    this.setButtonState(completed);
+  }
+
+  setButtonState(completed) {
+    this.button.disabled = completed;
+    this.button.setAttribute('aria-pressed', String(completed));
+    this.button.textContent = completed ? 'Tutorial Completed' : 'Mark Tutorial as Complete';
+  }
+
+  async onToggle() {
+    if (this.button.disabled || this.button.getAttribute('aria-pressed') === 'true') return;
+    
+    this.button.disabled = true;
+    this.button.textContent = 'Saving...';
+    
+    const success = await this.setProgress(true);
+    if (success) {
+      this.setButtonState(true);
+    } else {
+      this.setButtonState(false);
+    }
+  }
+}
+
 if (!customElements.get('demo-tabs')) customElements.define('demo-tabs', DemoTabs);
 if (!customElements.get('drag-list')) customElements.define('drag-list', DragList);
 if (!customElements.get('todo-app')) customElements.define('todo-app', TodoApp);
 if (!customElements.get('dom-inspector')) customElements.define('dom-inspector', DomInspector);
+if (!customElements.get('tutorial-progress')) customElements.define('tutorial-progress', TutorialProgress);
 
 function initializePage() {
   const tabButtons = [...document.querySelectorAll('.tabs [role="tab"][data-target]')];
@@ -494,16 +657,64 @@ function initializePage() {
   const themeButton = document.getElementById('theme-toggle');
   const body = document.body;
 
-  function setTheme(dark) {
+  async function setTheme(dark, skipSync = false) {
     body.classList.toggle('dark', dark);
     themeButton?.setAttribute('aria-pressed', String(dark));
     const label = themeButton?.querySelector('.theme-label');
     if (label) label.textContent = dark ? 'Light mode' : 'Dark mode';
     localStorage.setItem('ui-dark', dark ? '1' : '0');
+    
+    if (getCurrentUser() && !skipSync) {
+      try {
+        await api.preferences.updateTheme(dark ? '1' : '0');
+      } catch (err) {
+        console.error('Failed to sync theme', err);
+      }
+    }
   }
 
-  setTheme(localStorage.getItem('ui-dark') === '1');
-  themeButton?.addEventListener('click', () => setTheme(!body.classList.contains('dark')));
+  const storedTheme = localStorage.getItem('ui-dark');
+  if (storedTheme !== null) {
+    setTheme(storedTheme === '1', true);
+  } else {
+    const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(Boolean(prefersDark), true);
+  }
+
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', (e) => {
+      if (localStorage.getItem('ui-dark') === null) {
+        setTheme(e.matches, true);
+      }
+    });
+  }
+
+  let userManuallyToggledTheme = false;
+
+  themeButton?.addEventListener('click', () => {
+    userManuallyToggledTheme = true;
+    setTheme(!body.classList.contains('dark'));
+  });
+  
+  document.addEventListener('auth:login', async () => {
+    try {
+      const prefs = await api.preferences.get();
+      if (prefs && (prefs.theme === '1' || prefs.theme === 'dark')) {
+        setTheme(true, true);
+        userManuallyToggledTheme = false;
+      } else if (prefs && (prefs.theme === '0' || prefs.theme === 'light')) {
+        if (!userManuallyToggledTheme) {
+          setTheme(false, true);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to get preferences', err);
+    }
+  });
+
+  document.addEventListener('auth:logout', () => {
+    userManuallyToggledTheme = false;
+  });
 
   const modal = document.getElementById('modal');
   const openModalButton = document.getElementById('open-modal');
@@ -576,6 +787,79 @@ function initializePage() {
       window.setTimeout(() => header.classList.remove('highlight'), 900);
     }
   });
+  
+  // Live-edit runner for tutorial walkthrough pages
+  function renderSanitizedMarkup(container, rawHtml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(rawHtml, 'text/html');
+
+    // Remove script tags, iframe, object, embed, base
+    const dangerousTags = doc.querySelectorAll('script, iframe, object, embed, base');
+    dangerousTags.forEach((el) => el.remove());
+
+    // Walk elements and remove on* event handlers and javascript: urls
+    const allElements = doc.querySelectorAll('*');
+    allElements.forEach((el) => {
+      for (const attr of Array.from(el.attributes)) {
+        if (attr.name.toLowerCase().startsWith('on')) {
+          el.removeAttribute(attr.name);
+        } else if (
+          (attr.name.toLowerCase() === 'src' || attr.name.toLowerCase() === 'href') &&
+          attr.value.trim().toLowerCase().startsWith('javascript:')
+        ) {
+          el.removeAttribute(attr.name);
+        }
+      }
+    });
+
+    container.replaceChildren();
+    Array.from(doc.body.childNodes).forEach((node) => {
+      container.appendChild(document.importNode(node, true));
+    });
+  }
+
+  // Todo tutorial
+  const todoRun = document.getElementById('todo-run');
+  const todoEditor = document.getElementById('todo-editor');
+  const todoPreview = document.getElementById('todo-preview');
+  if (todoRun && todoEditor && todoPreview) {
+    todoRun.addEventListener('click', () => {
+      renderSanitizedMarkup(todoPreview, todoEditor.value);
+    });
+    todoRun.click();
+  }
+
+  // Widgets tutorial
+  const widgetsRun = document.getElementById('run');
+  const widgetsReset = document.getElementById('reset');
+  const widgetsEditor = document.getElementById('code-editor');
+  const widgetsPreview = document.getElementById('live-preview');
+  if (widgetsRun && widgetsEditor && widgetsPreview) {
+    widgetsRun.addEventListener('click', () => {
+      renderSanitizedMarkup(widgetsPreview, widgetsEditor.value);
+    });
+    if (widgetsReset) {
+      widgetsReset.addEventListener('click', () => {
+        widgetsEditor.value = '<demo-tabs></demo-tabs>\n<drag-list></drag-list>';
+        widgetsRun.click();
+      });
+    }
+    widgetsRun.click();
+  }
+
+  // Inspector tutorial
+  const inspRun = document.getElementById('insp-run');
+  const inspEditor = document.getElementById('insp-editor');
+  const inspPreview = document.getElementById('insp-preview');
+  if (inspRun && inspEditor && inspPreview) {
+    inspRun.addEventListener('click', () => {
+      renderSanitizedMarkup(inspPreview, inspEditor.value);
+    });
+    inspRun.click();
+  }
+
+  initAuthUI();
+  checkSession();
 }
 
 if (document.readyState === 'loading') {

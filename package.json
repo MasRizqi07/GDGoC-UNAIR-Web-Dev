@@ -8,17 +8,20 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=apps/web",
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present && npm run test:e2e",
-    "test:e2e": "playwright test",
+    "build": "npm run build --workspace=@gdgoc/contracts && npm run build --workspace=apps/api && npm run build --workspace=apps/web",
+    "test": "node --check apps/web/script.js && node --test scripts/assert-test-db.test.js && npm run test:e2e --workspace=apps/api && npm run build && npx playwright test",
+    "test:e2e": "npm run build && npx playwright test",
+    "verify": "node scripts/verify/run.js",
+    "check:links": "linkinator apps/web --recurse --check-fragments",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.40.0",
     "cross-env": "^7.0.3",
+    "linkinator": "^8.1.0",
     "rimraf": "^5.0.5"
   }
 }
-
