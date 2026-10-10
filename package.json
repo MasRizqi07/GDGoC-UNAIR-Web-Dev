@@ -20,8 +20,8 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.40.0",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "linkinator": "^8.1.0",
-    "rimraf": "^5.0.5"
+    "rimraf": "^6.1.3"
   }
 }

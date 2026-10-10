@@ -14,6 +14,6 @@
   },
   "dependencies": {
     "@gdgoc/contracts": "*",
-    "zod": "^3.25.76"
+    "zod": "^4.6.5"
   }
 }
