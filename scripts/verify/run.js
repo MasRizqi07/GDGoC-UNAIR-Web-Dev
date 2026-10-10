@@ -89,6 +89,9 @@ async function main() {
   } else if (stage === '8') {
     const { stage8Gates } = await import('./gates/stage-8.js');
     gates = stage8Gates;
+  } else if (stage === '9') {
+    const { stage9Gates } = await import('./gates/stage-9.js');
+    gates = stage9Gates;
   } else if (isAll) {
     gates = stageSGates; // Will chain through all stages as implemented
   } else {
