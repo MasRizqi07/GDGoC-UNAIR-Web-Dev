@@ -64,6 +64,7 @@ export const stage10Gates = [
         const execOpts = { cwd: tempBase, encoding: 'utf8', stdio: 'pipe', timeout: 300000 };
 
         execSync('npm ci', execOpts);
+        execSync('npx prisma generate --schema=apps/api/prisma/schema.prisma', execOpts);
         execSync('npm run build', execOpts);
         execSync('node --check apps/web/script.js', execOpts);
         execSync('node --test scripts/assert-test-db.test.js', execOpts);
@@ -81,3 +82,4 @@ export const stage10Gates = [
     },
   },
 ];
+

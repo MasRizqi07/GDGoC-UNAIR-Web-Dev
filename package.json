@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=apps/web",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspace=@gdgoc/contracts && npm run build --workspace=apps/api && npm run build --workspace=apps/web",
     "test": "node --check apps/web/script.js && node --test scripts/assert-test-db.test.js && npm run test:e2e --workspace=apps/api && npm run build && npx playwright test",
     "test:e2e": "npm run build && npx playwright test",
     "verify": "node scripts/verify/run.js",
