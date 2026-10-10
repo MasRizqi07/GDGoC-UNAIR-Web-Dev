@@ -344,6 +344,22 @@ px prisma migrate dev --name init).
 
 ---
 
+## STAGE 8 — Quality, UI/UX, Performance, Accessibility
+
+**Status:** VERIFIED
+
+### Evidence
+- **Design Tokens:** 0 raw color literals outside `tokens.css` across all CSS and HTML files. High-contrast focus ring, themed gradient glows, and elevated shadows tokenized.
+- **UI Acceptance & Responsive Reflow:** Verified 320px width reflow with zero horizontal scroll across Home, Privacy, and all tutorial pages. Primary interactive controls verified >= 44x44 CSS px. Visible focus outline >= 3px.
+- **Accessibility & Motion:** `prefers-reduced-motion` zero-duration transitions honored (`--transition-fast: 0s/0ms`). `prefers-color-scheme` respected on first visit with persisted manual override. Accessible form error bindings with `novalidate`, `aria-describedby`, and `aria-live` error announcements.
+- **Keyboard Walkthrough:** Full Tab order spec through shell, playground, and each tutorial. Focus trapping with Tab/Shift+Tab, Escape closing, and focus return verified on auth form modal and delete-account dialog.
+- **Screenshots:** All 24 screenshots across 3 viewports (320px, 768px, 1440px), 2 themes (light, dark), and 4 UI states captured into `evidence/screenshots/`.
+- **Lighthouse Performance & SEO Budgets:** 100 Perf, 96-97 A11y, 96-100 Best Practices, 91 SEO, LCP < 1.6s, CLS 0.000 across mobile and desktop audits on home and widgets tutorial pages.
+- **Delivery Headers:** Gzip response compression, `Cache-Control: no-cache` for HTML, immutable long-term caching for hashed bundle assets, valid SVG favicon, and metadata verified over HTTP.
+- **Verification Log:** `evidence/8-2026-10-10T07-25-14-487Z.log` (SHA256: `502c5dc836d81b3f47a9bf6412ce492c9dff097f6fb1da11ce072fc3c6d8f1a5`).
+
+---
+
 ## DEPENDENCY LEDGER
 
 ### Root (`package.json`)
@@ -427,12 +443,12 @@ Audit of commits `ee25698`, `45fad98`, `d22d16c`, `5c70798`, `2646ad4`, `b2ca95f
 | S | Safety and incident triage | VERIFIED | evidence/S-2026-10-09T15-11-39-166Z.log | e7c06df095b03e3eeac6166a693c8f468e29d2e4fe506b087ddef2a1f0d18883 |
 | R | Close Phase 6R: prove Phases 4, 5, 6 on PostgreSQL | VERIFIED | evidence/R-2026-10-09T15-15-38-384Z.log | 3368db5f679b4e31a529a9b9cacb9de0a54be8db1bef7706a04c22d4f16ab9e2 |
 | 7 | Security hardening | VERIFIED | evidence/7-2026-10-09T15-32-54-382Z.log | e35ee38da4fa0bc6e673195c0b5787444aa8d229d29d90a121c3847f3662a8c2 |
-| 8 | Quality, UI/UX, performance, accessibility | IN PROGRESS | PENDING | PENDING |
-| 9 | Deploy-readiness | PENDING | NOT RUN | NOT RUN |
+| 8 | Quality, UI/UX, performance, accessibility | VERIFIED | evidence/8-2026-10-10T07-25-14-487Z.log | 502c5dc836d81b3f47a9bf6412ce492c9dff097f6fb1da11ce072fc3c6d8f1a5 |
+| 9 | Deploy-readiness | IN PROGRESS | PENDING | PENDING |
 | 10 | Fresh-clone drill and release readiness | PENDING | NOT RUN | NOT RUN |
 
-**Current HEAD:** `d4c7373` (checkpoint/stage-7)
-**Last Verification:** Stage 7 PASS (21/21 gates passed)
+**Current HEAD:** `59101ea` (checkpoint/stage-8)
+**Last Verification:** Stage 8 PASS (19/19 gates passed)
 
 ---
 
