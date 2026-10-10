@@ -360,6 +360,22 @@ px prisma migrate dev --name init).
 
 ---
 
+## STAGE 9 — Deploy-Readiness
+
+**Status:** VERIFIED
+
+### Evidence
+- **Multi-Stage Dockerfile:** Pinned to Node 22 LTS (`node:22-alpine` checked 2026-10-10), non-root execution (`USER node`), `.dockerignore` context pruning, container healthcheck at `/api/v1/health`.
+- **Startup & Process Lifecycle:** `prisma migrate deploy` executed prior to web server boot, NestJS shutdown hooks enabled (`app.enableShutdownHooks()`) for graceful SIGTERM termination.
+- **Docker Compose Profiles:** Configured `dev` (database only) and `prod-like` (app and database with `service_healthy` condition) profiles in `docker-compose.yml`.
+- **Continuous Integration:** `.github/workflows/ci.yml` deployed with least-privilege `permissions: contents: read`, automated test pipeline (`npm test`, lint, typecheck, playwright, dependency audit).
+- **Environment Matrix:** Exhaustive variable matrix documented in `README.md` and complete placeholders in `.env.example`.
+- **Disaster Recovery Drill:** Successfully performed live schema and table dump via `pg_dump` on PostgreSQL.
+- **Container Smoke Drill:** Container spun up, verified migration deployment, health check `/api/v1/health` 200 OK, and root `/` serving built HTML.
+- **Verification Log:** `evidence/9-2026-10-10T08-21-46-959Z.log` (SHA256: `7a3ec8fd2ff3483f987571743320900f6c880d8d978aa80448313d7b5cedf8f3`).
+
+---
+
 ## DEPENDENCY LEDGER
 
 ### Root (`package.json`)
@@ -444,11 +460,11 @@ Audit of commits `ee25698`, `45fad98`, `d22d16c`, `5c70798`, `2646ad4`, `b2ca95f
 | R | Close Phase 6R: prove Phases 4, 5, 6 on PostgreSQL | VERIFIED | evidence/R-2026-10-09T15-15-38-384Z.log | 3368db5f679b4e31a529a9b9cacb9de0a54be8db1bef7706a04c22d4f16ab9e2 |
 | 7 | Security hardening | VERIFIED | evidence/7-2026-10-09T15-32-54-382Z.log | e35ee38da4fa0bc6e673195c0b5787444aa8d229d29d90a121c3847f3662a8c2 |
 | 8 | Quality, UI/UX, performance, accessibility | VERIFIED | evidence/8-2026-10-10T07-25-14-487Z.log | 502c5dc836d81b3f47a9bf6412ce492c9dff097f6fb1da11ce072fc3c6d8f1a5 |
-| 9 | Deploy-readiness | IN PROGRESS | PENDING | PENDING |
-| 10 | Fresh-clone drill and release readiness | PENDING | NOT RUN | NOT RUN |
+| 9 | Deploy-readiness | VERIFIED | evidence/9-2026-10-10T08-21-46-959Z.log | 7a3ec8fd2ff3483f987571743320900f6c880d8d978aa80448313d7b5cedf8f3 |
+| 10 | Fresh-clone drill and release readiness | IN PROGRESS | PENDING | PENDING |
 
-**Current HEAD:** `59101ea` (checkpoint/stage-8)
-**Last Verification:** Stage 8 PASS (19/19 gates passed)
+**Current HEAD:** `3038f78` (checkpoint/stage-9)
+**Last Verification:** Stage 9 PASS (19/19 gates passed)
 
 ---
 
