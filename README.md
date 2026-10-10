@@ -1,20 +1,105 @@
-# GDGoC UNAIR Web-Dev
+# GDGoC UNAIR Web-Dev — Production Platform & Architecture
 
-Production-ready interactive web development curriculum platform and full-stack application.
-
-## Architecture
-
-- **Frontend (`apps/web`):** Vanilla JavaScript, WCAG AA accessible components, responsive design token architecture, bundled with Vite for production distribution.
-- **Backend (`apps/api`):** NestJS modular API, Prisma ORM, PostgreSQL database, JWT authentication with HttpOnly cookies, CSP headers, rate-limiting, and compression.
-- **Contracts (`packages/contracts`):** Shared TypeScript contracts and Zod validation schemas shared end-to-end between client and server.
+Production-grade full-stack web application and interactive web development curriculum platform developed for Google Developer Groups on Campus (GDGoC) Universitas Airlangga.
 
 ---
 
-## Environment Variables Matrix
+## 1. System Architecture & High-Level Design
+
+The repository is structured as a TypeScript monorepo with strict separation of concerns, end-to-end type safety, and zero-trust security boundaries:
+
+```mermaid
+graph TD
+    Client["Browser Client (apps/web)<br/>Vanilla JS + Design Tokens + Vite"]
+    NginxOrNode["NestJS Server (apps/api)<br/>Port :3000"]
+    Static["ServeStatic / Static Proxy<br/>HTML, JS, CSS, Assets"]
+    OriginG["OriginGuard / CSP Headers<br/>Cross-Origin Mutation Block"]
+    AuthG["JwtAuthGuard / Throttler<br/>HttpOnly Cookie Session"]
+    Controllers["NestJS Controllers<br/>(Auth, Todos, Health)"]
+    Services["Domain Services & Logic"]
+    Prisma["Prisma ORM (PostgreSQL)"]
+    Postgres[("PostgreSQL 17 Container<br/>gdgoc / gdgoc_test")]
+
+    Client -->|HTTP / HTTPS| NginxOrNode
+    NginxOrNode --> Static
+    NginxOrNode --> OriginG
+    OriginG --> AuthG
+    AuthG --> Controllers
+    Controllers --> Services
+    Services --> Prisma
+    Prisma --> Postgres
+```
+
+### Monorepo Workspaces
+- **`apps/web`:** High-performance, frameworkless vanilla JavaScript client. Features accessible WCAG AA design system tokens (`tokens.css`), client-side state synchronization, offline resilience, and sandboxed live tutorial execution.
+- **`apps/api`:** Modular NestJS application providing RESTful APIs, cookie-based JWT authentication, rate limiting, and Prisma ORM integration.
+- **`packages/contracts`:** Shared Zod schemas and TypeScript interfaces ensuring runtime input validation across frontend and backend.
+
+---
+
+## 2. Core Architectural & Design Principles
+
+### A. Security Architecture & Threat Model
+1. **HttpOnly Cookie Authentication:** JWT tokens are stored strictly in `HttpOnly`, `SameSite=Lax`, `Secure` cookies, eliminating XSS token theft vectors.
+2. **Refresh Token Family Revocation:** Refresh tokens are hashed using SHA-256 and stored in the database. When token reuse is detected, the entire token family is revoked immediately.
+3. **Strict Origin & CSRF Defense:** The `OriginGuard` verifies `Origin` and `Referer` headers on all mutating HTTP methods (`POST`, `PUT`, `PATCH`, `DELETE`), preventing CSRF.
+4. **Sandboxed Tutorial Live Edit:** Tutorial code execution is isolated within an iframe sandbox without `allow-same-origin`, preventing script injection from compromising the parent application.
+5. **Security Headers & CSP:** Helmet configures strict Content Security Policy (`script-src 'self'`), `frame-ancestors 'none'`, and `X-Content-Type-Options: nosniff`.
+
+### B. Database Schema & ERD
+```mermaid
+erDiagram
+    User ||--o{ RefreshToken : owns
+    User ||--o{ Todo : owns
+
+    User {
+        string id PK
+        string email UK
+        string passwordHash
+        string theme
+        json tutorialProgress
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    RefreshToken {
+        string id PK
+        string tokenHash UK
+        string userId FK
+        datetime expiresAt
+        datetime createdAt
+    }
+
+    Todo {
+        string id PK
+        string title
+        boolean completed
+        int order
+        string userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+```
+
+### C. Authentication State Lifecycle
+```mermaid
+stateDiagram-v2
+    [*] --> Unauthenticated
+    Unauthenticated --> Authenticated : POST /auth/login (HttpOnly Cookies)
+    Authenticated --> Authenticated : Access Protected API (/todos, /me)
+    Authenticated --> Refreshing : Access Token Expired (401)
+    Refreshing --> Authenticated : POST /auth/refresh (Rotated Tokens)
+    Refreshing --> Unauthenticated : Invalid / Reused Token (Revoke Family)
+    Authenticated --> Unauthenticated : POST /auth/logout or Delete Account
+```
+
+---
+
+## 3. Environment Variables Matrix
 
 | Variable | Required | Default / Example | Purpose & Production Constraints |
 |---|---|---|---|
-| `NODE_ENV` | No | `development` | Runtime mode (`development`, `production`, `test`). In production, triggers strict security validations. |
+| `NODE_ENV` | No | `development` | Runtime mode (`development`, `production`, `test`). Triggers strict security in production. |
 | `PORT` | No | `3000` | Port for the NestJS API HTTP server. |
 | `DATABASE_URL` | **Yes** | `postgresql://...` | Connection URL for PostgreSQL. In production, cannot contain default `dev:devpassword`, `127.0.0.1`, or `localhost`. |
 | `TEST_DATABASE_URL` | For tests | `postgresql://.../gdgoc_test` | Dedicated PostgreSQL test database URL. Must end with `_test` suffix. |
@@ -29,89 +114,82 @@ Production-ready interactive web development curriculum platform and full-stack 
 
 ---
 
-## Quick Start (Development)
+## 4. Quick Start (Development)
 
 ### Prerequisites
 - Node.js 22 LTS
 - Docker Desktop (with Docker Compose)
 
-### 1. Setup Environment
+### Setup & Run
 ```bash
+# 1. Clone & install dependencies
+npm ci
+
+# 2. Configure environment
 cp .env.example .env
-# Edit .env as appropriate
-```
 
-### 2. Start PostgreSQL Container
-```bash
+# 3. Start PostgreSQL container
 docker compose up -d db
-```
 
-### 3. Install Dependencies & Run Migrations
-```bash
-npm install
-npx prisma migrate dev --name init
-```
+# 4. Generate Prisma client & apply database migrations
+npx prisma generate --schema=apps/api/prisma/schema.prisma
+npx prisma migrate dev --name init --schema=apps/api/prisma/schema.prisma
 
-### 4. Build and Run Dev
-```bash
+# 5. Build contracts & workspaces
 npm run build
+
+# 6. Start development server
 npm run dev
 ```
 Access the application at `http://localhost:3000`.
 
 ---
 
-## Testing & Verification
+## 5. Testing & Quality Verification Suite
 
-- **Full Test Suite:** `npm test`
-- **End-to-End Playwright Tests:** `npx playwright test`
-- **API Integration Tests:** `npm run test:e2e --workspace=apps/api`
-- **Machine Verification Gate:** `npm run verify -- --stage <id>` (or `--all`)
+The repository maintains an automated ratchet verification system:
+- **Full Test Suite:** `npm test` (syntax check, test DB guard, Vitest API tests, build, and Playwright)
+- **API E2E Tests:** `npm run test:e2e --workspace=apps/api`
+- **Browser Playwright E2E:** `npx playwright test --repeat-each=3`
+- **Accessibility & UI:** Automated WCAG 2.1 AA checks via `@axe-core/playwright`, 320px reflow test, and keyboard walkthrough.
+- **Lighthouse Audits:** `node scripts/run-lighthouse.js` (enforces 100 on Performance, Accessibility, Best Practices, SEO).
+- **Machine Verifier:** `npm run verify -- --stage <id>` or `npm run verify -- --all`
 
 ---
 
-## Docker & Production Deployment
+## 6. Docker & Production Deployment
 
-### Multi-Stage Docker Build
-The root `Dockerfile` uses a multi-stage build pinned to `node:22-alpine` running as a non-privileged `node` user with a container health check:
+### Multi-Stage Dockerfile
+The production `Dockerfile` builds an immutable, hardened container:
+- Base: `node:22-alpine`
+- Process execution: Non-root user (`USER node`)
+- Health check: Configured HTTP probe hitting `/api/v1/health`
+- Excludes dev tools and sources via `.dockerignore`
 
 ```bash
-# Build production image
+# Build production web bundle
 npm run build --workspace=apps/web
+
+# Build production container image
 docker build -t gdgoc-app:latest .
 
-# Run with Docker Compose (prod-like profile)
+# Run with Docker Compose production profile
 docker compose --profile prod-like up -d
 ```
 
-### Production Health Check
-The application exposes a health check endpoint:
-```bash
-curl -f http://localhost:3000/api/v1/health
-```
-
 ---
 
-## Database Migrations & Rollback Procedures
+## 7. Disaster Recovery & Rollback Runbook
 
-### Applying Migrations
-In production / container environments:
+### Database Backups (`pg_dump`)
 ```bash
-npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma
+# Export schema & data
+docker exec gdgocunairweb-dev-db-1 pg_dump -U dev -d gdgoc > backup.sql
+
+# Restore from backup
+docker exec -i gdgocunairweb-dev-db-1 psql -U dev -d gdgoc < backup.sql
 ```
 
-### Backup & Restore (Disaster Recovery Drill)
-```bash
-# 1. Create database dump
-docker exec <db-container> pg_dump -U <user> -d <dbname> > backup.sql
-
-# 2. Restore database from dump
-docker exec -i <db-container> psql -U <user> -d <dbname> < backup.sql
-```
-
-### Rollback Strategy
-1. **Zero-downtime backwards compatible migrations:** Schema changes must be additive (add column nullable/with default first, deploy code, then deprecate old column).
-2. **Reverting a migration:**
-   - Create a compensating migration with `npx prisma migrate dev --name revert_<feature>`.
-   - Apply the compensating migration with `npx prisma migrate deploy`.
-   - Re-deploy previous application image.
+### Zero-Downtime Rollback Strategy
+1. **Schema migrations:** All database schema changes must be additive (backward compatible).
+2. **Reverting changes:** Create a compensating migration with `npx prisma migrate dev --name revert_<feature>`, deploy via `npx prisma migrate deploy`, and rollback container image.
