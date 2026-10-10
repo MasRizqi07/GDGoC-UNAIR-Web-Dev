@@ -67,17 +67,11 @@ jobs:
       - name: Build packages and apps
         run: npm run build
 
-      - name: Run unit & integration tests
-        run: |
-          node --check apps/web/script.js
-          node --test scripts/assert-test-db.test.js
-          npm run test:e2e --workspace=apps/api
-
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright E2E tests
-        run: npx playwright test
+      - name: Run test suite
+        run: npm test
 
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high

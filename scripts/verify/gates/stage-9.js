@@ -203,7 +203,7 @@ export const stage9Gates = [
           return { pass: false, output: `Container web serving failed with status ${webRes.status}` };
         }
         const html = await webRes.text();
-        if (!html.includes('GDGoC UNAIR')) {
+        if (!html.includes('Deep Dive')) {
           return { pass: false, output: 'Container web response missing expected content' };
         }
 
