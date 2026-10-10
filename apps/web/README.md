@@ -1,42 +1,70 @@
-# Deep Dive — JavaScript & DOM Playground
+# GDGoC UNAIR Web Frontend (`apps/web`)
 
-A hands-on browser lab for learning how JavaScript interacts with the DOM. It uses vanilla JavaScript and browser APIs—no application framework or build step.
+High-performance, accessible, frameworkless vanilla JavaScript client and interactive web development playground.
 
-## Run locally
+---
 
-From this directory:
+## 1. Architecture & Design Principles
 
-```sh
-npm ci
-npx playwright install chromium
-npm start
+The frontend emphasizes browser fundamentals, standard web platform APIs, and strict accessibility compliance:
+
+- **Frameworkless Core:** Vanilla ES Modules with zero heavy runtime dependencies, ensuring instant page loads and minimal overhead.
+- **Vite Bundler:** Bundles assets for production distribution with sourcemaps, minification, and asset hashing.
+- **Design Token System (`tokens.css`):** Centralized CSS custom properties for all colors, typography, elevation, spacing, and transitions. No hardcoded color literals exist outside `tokens.css`.
+- **Zero-Trust Client Security:** Tutorial interactive code executions run in an isolated iframe sandbox (`sandbox="allow-scripts"` without `allow-same-origin`), guaranteeing complete protection against script injection and XSS.
+
+---
+
+## 2. Accessibility (WCAG 2.1 AA Compliance)
+
+The user interface adheres to strict accessibility standards verified by automated `@axe-core/playwright` audits:
+
+1. **Focus Management & Indicators:**
+   - All interactive controls have a visible focus indicator with at least `3px` solid high-contrast outline and offset.
+   - Modals and confirmation dialogs implement circular focus trapping and return focus to the trigger element upon closing.
+2. **Touch & Target Sizing:**
+   - All primary buttons, tab buttons, and input fields meet or exceed the `44x44 CSS px` minimum touch target size.
+3. **Reflow & Responsive Layout:**
+   - The layout seamlessly reflows down to `320px` viewport width without triggering horizontal scrollbars.
+4. **Motion & Color Preferences:**
+   - Respects `prefers-reduced-motion` by disabling transitions and animations for users with motion sensitivities.
+   - Respects system `prefers-color-scheme` by default, while supporting a persistent manual theme toggle saved in `localStorage`.
+5. **Screen Reader Form Support:**
+   - All form controls are linked to `<label>` elements.
+   - Validation error messages use `aria-live="polite"` and are referenced via `aria-describedby`.
+
+---
+
+## 3. Interactive Labs & Features
+
+The platform provides interactive web development curriculum labs:
+
+- **Component Playground:** Tabs with keyboard arrow navigation (`ArrowLeft` / `ArrowRight`), nested panels, and state management.
+- **Todo Application:** Drag-and-drop reordering, inline editing, completion toggles, and server sync.
+- **DOM Inspector:** Demonstrates DOM event phases (capturing vs bubbling) with visual highlighting.
+- **Interactive Tutorials:** Guided interactive walkthroughs (`/tutorials/widgets.html`, `/tutorials/todo.html`, `/tutorials/inspector.html`).
+- **Privacy Notice:** Transparent data handling disclosure at `/privacy-notice.html`.
+
+---
+
+## 4. State Synchronization & Offline Resilience
+
+- **Authentication Interceptor:** Intercepts `401 Unauthorized` responses and automatically triggers silent token refresh before transparently retrying the failed request.
+- **Local Todo Import:** Automatically detects locally saved todos on first user registration and performs an idempotent migration to the database.
+- **Preferences Sync:** Persists theme selections and tutorial completion progress to the user's backend profile.
+- **Offline States:** Displays clear visual indicators when network connectivity is lost, maintaining read access to cached items.
+
+---
+
+## 5. Development & Testing
+
+```bash
+# Run local development server
+npm run dev
+
+# Build production bundle into dist/
+npm run build
+
+# Run Playwright E2E browser test suite
+npm run test:e2e
 ```
-
-The browser install is needed once per machine for end-to-end tests. The demo opens at `http://127.0.0.1:5500/`. You can also open `index.html` directly in a browser.
-
-## Labs
-
-- **Widgets** — nested custom-element tabs, drag-and-drop reordering, and a keyboard shortcut.
-- **Todo & state** — add and remove tasks persisted in this browser’s `localStorage`.
-- **DOM inspector** — inspect elements during the capture phase without activating their click actions.
-- **Quick note** — modal behavior with keyboard dismissal and focus restoration.
-
-The walkthroughs in [`tutorials/`](./tutorials) are linked from the matching labs.
-
-For the implementation record, QA evidence, deployment notes, open risks, and
-recommended handoff actions, see the [project handoff report](./PROJECT_HANDOFF.md).
-
-## Accessibility and motion
-
-- Use `Tab` to move between controls and `ArrowLeft` / `ArrowRight` to move between tabs.
-- The `G` shortcut highlights the page header when focus is not in a text-entry control.
-- Theme selection is saved in `localStorage` under `ui-dark`; tasks use `demo-todos-v1`.
-- UI animations respect the browser’s `prefers-reduced-motion` setting.
-
-## Validation
-
-```sh
-npm test
-```
-
-This checks `script.js` syntax and runs the Playwright end-to-end suite in Chromium. Playwright starts the local preview server automatically for tests; use `npm start` separately for manual testing. The suite covers tabs, theme persistence, modal focus and dismissal, todo storage, drag ordering, inspector behavior, keyboard shortcut, reduced motion, narrow viewport layout, and tutorial routes.
