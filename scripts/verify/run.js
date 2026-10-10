@@ -92,8 +92,31 @@ async function main() {
   } else if (stage === '9') {
     const { stage9Gates } = await import('./gates/stage-9.js');
     gates = stage9Gates;
+  } else if (stage === '10') {
+    const { stage10Gates } = await import('./gates/stage-10.js');
+    gates = stage10Gates;
   } else if (isAll) {
-    gates = stageSGates; // Will chain through all stages as implemented
+    const { stageRGates } = await import('./gates/stage-r.js');
+    const { stage7Gates } = await import('./gates/stage-7.js');
+    const { stage8Gates } = await import('./gates/stage-8.js');
+    const { stage9Gates } = await import('./gates/stage-9.js');
+    const { stage10Gates } = await import('./gates/stage-10.js');
+    const all = [
+      ...stageSGates,
+      ...stageRGates,
+      ...stage7Gates,
+      ...stage8Gates,
+      ...stage9Gates,
+      ...stage10Gates,
+    ];
+    const seen = new Set();
+    gates = [];
+    for (const g of all) {
+      if (!seen.has(g.id)) {
+        seen.add(g.id);
+        gates.push(g);
+      }
+    }
   } else {
     tee(`Stage ${stage} not yet implemented or unknown.\n`);
     logStream.end();
