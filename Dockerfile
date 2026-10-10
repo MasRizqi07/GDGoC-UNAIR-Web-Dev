@@ -1,5 +1,5 @@
 # Stage 1: Build API & Contracts
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ RUN npm run build --workspace=@gdgoc/contracts
 RUN npm run build --workspace=apps/api
 
 # Stage 2: Production Runtime
-FROM node:22-alpine AS runner
+FROM node:25-alpine AS runner
 
 WORKDIR /app
 
