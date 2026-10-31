@@ -18,10 +18,10 @@
     "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.13.0",
-    "@playwright/test": "^1.40.0",
-    "cross-env": "^7.0.3",
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
+    "cross-env": "^10.1.0",
     "linkinator": "^8.1.0",
-    "rimraf": "^5.0.5"
+    "rimraf": "^6.1.3"
   }
 }
